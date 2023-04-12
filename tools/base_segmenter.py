@@ -47,8 +47,12 @@ class BaseSegmenter:
         """
         image: numpy array, h, w, 3
         prompts: dictionary, 3 keys: 'point_coords', 'point_labels', 'mask_input'
+        prompts['point_coords']: numpy array [N,2]
+        prompts['point_labels']: numpy array [1,N]
+        prompts['mask_input']: numpy array [1,256,256]
         mode: 'point' (points only), 'mask' (mask only), 'both' (consider both)
         mask_outputs: True (return 3 masks), False (return 1 mask only)
+        whem mask_outputs=True, mask_input=logits[np.argmax(scores), :, :][None, :, :]
         """
         assert self.embedded, 'prediction is called before set_image (feature embedding).'
         assert mode in ['point', 'mask', 'both'], 'mode must be point, mask, or both'
