@@ -29,6 +29,7 @@ class BaseSegmenter:
 
     @torch.no_grad()
     def set_image(self, image: np.ndarray):
+        # PIL.open(image_path) 3channel: RGB
         # image embedding
         if self.embedded:
             print('repeat embedding, please reset_image.')
