@@ -5,3 +5,4 @@ git+https://github.com/cheind/py-thin-plate-spline
 hickle
 tensorboard
 numpy
+git+https://github.com/facebookresearch/segment-anything.git
