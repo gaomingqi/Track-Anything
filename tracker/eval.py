@@ -203,9 +203,10 @@ for vid_reader in progressbar(meta_loader, max_value=len(meta_dataset), redirect
                 labels = None
 
             # Run the model on this frame
-            prob = processor.step(rgb, msk, labels, end=(ti==vid_length-1))
+            prob = processor.step(rgb, msk, labels, end=(ti==vid_length-1)) # 0, background, >0, objects
 
-            # consider prob as prompt to refine segment results
+            # consider prob (only object channels) as prompt to refine segment results
+            
             
 
             # Upsample to original size if needed
