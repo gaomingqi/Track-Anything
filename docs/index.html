@@ -1,0 +1,174 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-E4PHBZXG5S"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-E4PHBZXG5S');
+    </script>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400&display=swap" rel="stylesheet">
+
+	<title>XMem</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link href="style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+
+<body>
+<br><br><br><br>
+<div class="container">
+        <div class="row text-center" style="font-size:38px">
+            <div class="col">
+            XMem: Long-Term Video Object Segmentation with an Atkinson-Shiffrin Memory Model
+            </div>
+        </div>
+
+        <br>
+        <div class="row text-center" style="font-size:28px">
+            <div class="col">
+            ECCV 2022
+            </div>
+        </div>
+        <br>
+
+        <div class="h-100 row text-center heavy justify-content-md-center" style="font-size:24px;">
+            <div class="col-sm-3">
+                <a href="https://hkchengrex.github.io/">Ho Kei Cheng</a>
+            </div>
+            <div class="col-sm-3">
+                <a href="https://www.alexander-schwing.de/">Alexander Schwing</a>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="h-100 row text-center justify-content-md-center" style="font-size:20px;">
+            <div class="col-sm-2">
+                <a href="https://arxiv.org/abs/2207.07115">[arXiv]</a>
+            </div>
+            <div class="col-sm-2">
+                <a href="https://arxiv.org/pdf/2207.07115.pdf">[Paper]</a>
+            </div>
+            <div class="col-sm-2">
+                <a href="https://github.com/hkchengrex/XMem">[Code]</a>
+            </div>
+        </div>
+
+    <br>
+
+    <div class="h-100 row text-center justify-content-md-center">
+        <i>Interactive GUI demo available <a href="https://github.com/hkchengrex/XMem/blob/main/docs/DEMO.md">[here]</a>! </i>
+        <div class="col">
+            <a href="https://github.com/hkchengrex/XMem/blob/main/docs/DEMO.md">
+                <img width="60%" src="https://imgur.com/uAImD80.jpg" alt="framework">
+            </a>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row" style="font-size:32px">
+        <div class="col">
+        Abstract
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col">
+            <p style="text-align: justify;">
+                We present XMem, a video object segmentation architecture for long videos with unified feature memory stores inspired by the Atkinson-Shiffrin memory model.
+		Prior work on video object segmentation typically only uses one type of feature memory. For videos longer than a minute, a single feature memory model tightly links memory consumption and accuracy. 
+		In contrast, following the Atkinson-Shiffrin model, we develop an architecture that incorporates multiple independent yet deeply-connected feature memory stores: a rapidly updated sensory memory, a high-resolution working memory, and a compact thus sustained long-term memory.
+		Crucially, we develop a memory potentiation algorithm that routinely consolidates actively used working memory elements into the long-term memory, which avoids memory explosion and minimizes performance decay for long-term prediction.
+		Combined with a new memory reading mechanism, XMem greatly exceeds state-of-the-art performance on long-video datasets while being on par with state-of-the-art methods (that do not work on long videos) on short-video datasets.
+            </p>
+        </div>
+    </div>
+    <br>
+    <div class="h-100 row text-center justify-content-md-center">
+        <div class="col">
+            <img width="80%" src="https://imgur.com/ToE2frx.jpg" alt="framework">
+        </div>
+    </div>
+
+    <br>
+    <hr>
+    <br>
+
+    <div class="row" style="font-size:32px">
+        <div class="col">
+        Handling long-term occlusion
+        </div>
+    </div>
+    <br>
+    <center>
+        <iframe style="width:100%; aspect-ratio: 1.78;"
+            src="https://www.youtube.com/embed/mwOP8l3zVNw" 
+            title="YouTube video player" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
+    </center>
+
+    <br>
+    <hr>
+    <br>
+
+    <div class="row" style="font-size:32px">
+        <div class="col">
+        Very-long video; masked layer insertion
+        </div>
+    </div>
+    <br>
+    <center>
+        <iframe style="width:100%; aspect-ratio: 1.78;"
+            src="https://www.youtube.com/embed/9OtFvF8FiEg" 
+            title="YouTube video player" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+        </iframe>
+        Source: https://www.youtube.com/watch?v=q5Xr0F4a0iU
+    </center>
+
+    <br>
+    <hr>
+    <br>
+
+    <div class="row" style="font-size:32px">
+        <div class="col">
+        Out-of-domain case
+        </div>
+    </div>
+    <br>
+    <center>
+        <video style="width: 100%" controls>
+            <source src="https://user-images.githubusercontent.com/7107196/177920383-161f1da1-33f9-48b3-b8b2-09e450432e2b.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+          </video> 
+        Source: かぐや様は告らせたい ～天才たちの恋愛頭脳戦～ Ep.3; A1 Pictures
+    </center>
+
+    <br><br>
+
+    <div style="font-size: 14px;">
+        Contact: Ho Kei (Rex) Cheng hkchengrex@gmail.com
+        <br>
+    </div>
+
+    <br><br>
+
+</div>
+
+</body>
+</html>

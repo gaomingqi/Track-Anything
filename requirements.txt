@@ -1,0 +1,7 @@
+progressbar2
+gdown
+gitpython
+git+https://github.com/cheind/py-thin-plate-spline
+hickle
+tensorboard
+numpy
