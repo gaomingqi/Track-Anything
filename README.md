@@ -1,5 +1,5 @@
 # Track-Anything
-An Efficient Development Toolkit for Video Object Tracking and Segmentation.
+**Track-Anything** is an Efficient Development Toolkit for Video Object Tracking and Segmentation.
 
 ## Demo
 
