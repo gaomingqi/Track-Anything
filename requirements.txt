@@ -6,3 +6,10 @@ hickle
 tensorboard
 numpy
 git+https://github.com/facebookresearch/segment-anything.git
+gradio==3.25.0
+opencv-python
+pycocotools
+matplotlib
+onnxruntime
+onnx
+
