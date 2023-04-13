@@ -31,12 +31,14 @@ def download_checkpoint(url, folder, filename):
     filepath = os.path.join(folder, filename)
 
     if not os.path.exists(filepath):
+        print("download sam checkpoints ......")
         response = requests.get(url, stream=True)
         with open(filepath, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
 
+        print("download successfully!")
     return filepath
 
 class SamControler():
