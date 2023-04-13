@@ -2,4 +2,6 @@ __pycache__/
 .vscode/
 docs/
 *.pth
-
+*.mp4
+debug_images/
+*.png
