@@ -5,6 +5,14 @@ import cv2
 import time   
 from PIL import Image
 import numpy as np
+
+
+from tools.interact_tools import initialize
+
+
+initialize()
+
+
 def pause_video(play_state):
     print("user pause_video")
     play_state.append(time.time())
