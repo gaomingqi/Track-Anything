@@ -40,7 +40,7 @@ def download_checkpoint(url, folder, filename):
     return filepath
 
 class SamControler():
-    def __init__(self):
+    def __init__(self, sam_checkpoint, model_type, device):
         '''
         initialize sam controler
         '''

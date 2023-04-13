@@ -149,7 +149,7 @@ with gr.Blocks() as iface:
     )
 
 iface.queue(concurrency_count=1)
-iface.launch(debug=True, enable_queue=True, server_port=122, server_name="0.0.0.0")
+iface.launch(debug=True, enable_queue=True, server_port=12200, server_name="0.0.0.0")
 
 
     
