@@ -45,7 +45,7 @@ class SamControler():
         initialize sam controler
         '''
         checkpoint_url = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
-        folder ="segmenter/checkpoints"
+        folder ="checkpoints"
         SAM_checkpoint= 'sam_vit_h_4b8939.pth'
         SAM_checkpoint = download_checkpoint(checkpoint_url, folder, SAM_checkpoint)
         # SAM_checkpoint = '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
