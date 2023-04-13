@@ -9,12 +9,35 @@ def play_video():
     print("play video")
     print(time.time)
 
+def get_frames_from_video(video_path, timestamp):
+    """
+        video_path:str
+        timestamp:float64
+        return [[0:nearest_frame-1], [nearest_frame+1], nearest_frame]
+    """
+    frames = []
+    try:
+        cap = cv2.VideoCapture(video_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if ret == True:
+                frames.append(frame)
+            else:
+                break
+    except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
+        print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
+    
+    key_frame_index = int(timestamp * fps)
+    nearest_frame = frames[key_frame_index]
+    frames = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
+    return frames
+
 
 with gr.Blocks() as iface:
     with gr.Row():
         with gr.Column(scale=1.0):
             seg_automask_video_file = gr.Video().style(height=720)
-            gr.Video.g
             seg_automask_video_file.play(fn=play_video)
             seg_automask_video_file.pause(fn=pause_video)
             with gr.Row():
@@ -76,13 +99,6 @@ with gr.Blocks() as iface:
     #     ],
     #     outputs=[output_video],
     # )
-
-
-
-
-
-
-
 
 iface.queue(concurrency_count=1)
 iface.launch(debug=True, enable_queue=True, server_port=12212, server_name="0.0.0.0")
