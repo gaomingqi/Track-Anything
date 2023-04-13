@@ -7,10 +7,12 @@ from PIL import Image
 import numpy as np
 
 
-from tools.interact_tools import initialize
+from tools.interact_tools import SamControler
+
+samc = SamControler()
 
 
-initialize()
+
 
 
 def pause_video(play_state):
