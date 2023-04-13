@@ -205,10 +205,6 @@ for vid_reader in progressbar(meta_loader, max_value=len(meta_dataset), redirect
             # Run the model on this frame
             prob = processor.step(rgb, msk, labels, end=(ti==vid_length-1)) # 0, background, >0, objects
 
-            # consider prob (only object channels) as prompt to refine segment results
-            
-            
-
             # Upsample to original size if needed
             if need_resize:
                 prob = F.interpolate(prob.unsqueeze(1), shape, mode='bilinear', align_corners=False)[:,0]
