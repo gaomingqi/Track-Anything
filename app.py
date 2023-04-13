@@ -7,10 +7,10 @@ from PIL import Image
 import numpy as np
 
 
-from tools.interact_tools import initialize
+# from tools.interact_tools import initialize
 
 
-initialize()
+# initialize()
 
 
 def pause_video(play_state):
