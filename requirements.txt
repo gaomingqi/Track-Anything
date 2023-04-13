@@ -13,3 +13,4 @@ matplotlib
 onnxruntime
 onnx
 metaseg
+pyyaml
