@@ -150,9 +150,9 @@ def mask_painter(input_image, input_mask, mask_color=5, mask_alpha=0.7, contour_
 	contour_mask[contour_mask>0.5] = 1.
 
 	# paint mask
-	painted_image = vis_add_mask(input_image, mask, mask_color, mask_alpha)
+	painted_image = vis_add_mask(input_image.copy(), mask.copy(), mask_color, mask_alpha)
 	# paint contour
-	painted_image = vis_add_mask(painted_image, 1-contour_mask, contour_color, 1)
+	painted_image = vis_add_mask(painted_image.copy(), 1-contour_mask, contour_color, 1)
 
 	return painted_image
 
@@ -166,10 +166,15 @@ if __name__ == '__main__':
 	mask_alpha = 0.7
 	contour_color = 1
 	contour_width = 5
+
+	# save
+	painted_image = Image.fromarray(input_image)
+	painted_image.save('images/original.png')
+
 	painted_image = mask_painter(input_image, input_mask, mask_color, mask_alpha, contour_color, contour_width)
 	# save
-	painted_image = Image.fromarray(painted_image)
-	painted_image.save('images/mask_painter.png')
+	painted_image = Image.fromarray(input_image)
+	painted_image.save('images/original1.png')
 
 	# example of point painter
 	input_image = np.array(Image.open('images/painter_input_image.jpg').convert('RGB'))
