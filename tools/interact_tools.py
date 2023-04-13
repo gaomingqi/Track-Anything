@@ -16,7 +16,8 @@ mask_color = 3
 mask_alpha = 0.7
 contour_color = 1
 contour_width = 5
-point_color = 5
+point_color_ne = 8
+point_color_ps = 50
 point_alpha = 0.9
 point_radius = 15
 contour_color = 2
@@ -56,8 +57,11 @@ def first_frame_click(sam_controler, image: np.ndarray, points:np.ndarray, label
     masks, scores, logits = sam_controler.predict(prompts, 'point', multimask)
     mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
     
+    assert len(points)==len(labels)
+    
     painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
-    painted_image = point_painter(painted_image, points, point_color, point_alpha, point_radius, contour_color, contour_width)
+    painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
+    painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
     painted_image = Image.fromarray(painted_image)
     
     return mask, logit, painted_image
@@ -76,7 +80,8 @@ def interact_loop(sam_controler, image:np.ndarray, same: bool, points:np.ndarray
         mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
         
         painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
-        painted_image = point_painter(painted_image, points, point_color, point_alpha, point_radius, contour_color, contour_width)
+        painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
+        painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
         painted_image = Image.fromarray(painted_image)
 
         return mask, logit, painted_image
@@ -96,7 +101,8 @@ def interact_loop(sam_controler, image:np.ndarray, same: bool, points:np.ndarray
         mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
         
         painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
-        painted_image = point_painter(painted_image, points, point_color, point_alpha, point_radius, contour_color, contour_width)
+        painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
+        painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
         painted_image = Image.fromarray(painted_image)
 
         return mask, logit, painted_image
@@ -115,6 +121,7 @@ if __name__ == "__main__":
     painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
     cv2.imwrite('/hhd3/gaoshang/truck_point.jpg', painted_image)
+    cv2.imwrite('/hhd3/gaoshang/truck_change.jpg', image)
     painted_image_full.save('/hhd3/gaoshang/truck_point_full.jpg')
     
     mask, logit, painted_image_full = interact_loop(sam_controler,image,True, points, np.array([1, 0]), logit, multimask=True)
