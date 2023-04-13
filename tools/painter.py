@@ -129,9 +129,9 @@ def point_painter(input_image, input_points, point_color=5, point_alpha=0.9, poi
 	contour_mask[contour_mask>0.5] = 1.
 
 	# paint mask
-	painted_image = vis_add_mask(input_image, point_mask, point_color, point_alpha)
+	painted_image = vis_add_mask(input_image.copy(), point_mask, point_color, point_alpha)
 	# paint contour
-	painted_image = vis_add_mask(painted_image, 1-contour_mask, contour_color, 1)
+	painted_image = vis_add_mask(painted_image.copy(), 1-contour_mask, contour_color, 1)
 	return painted_image
 
 def mask_painter(input_image, input_mask, mask_color=5, mask_alpha=0.7, contour_color=1, contour_width=3):
