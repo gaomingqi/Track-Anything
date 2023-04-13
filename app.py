@@ -31,7 +31,7 @@ def get_frames_from_video(video_input, play_state):
         video_path:str
         timestamp:float64
     Return 
-        [[0:nearest_frame-1], [nearest_frame+1], nearest_frame]
+        [[0:nearest_frame], [nearest_frame:], nearest_frame]
     """
     video_path = video_input
     timestamp = play_state[1] - play_state[0]
@@ -149,7 +149,7 @@ with gr.Blocks() as iface:
     )
 
 iface.queue(concurrency_count=1)
-iface.launch(debug=True, enable_queue=True, server_port=122, server_name="0.0.0.0")
+iface.launch(debug=True, enable_queue=True, server_port=12200, server_name="0.0.0.0")
 
 
     
