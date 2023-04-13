@@ -63,10 +63,15 @@ with gr.Blocks() as iface:
             with gr.Row():
 
                 with gr.Row():
-                    with gr.Column():
+                    with gr.Column(scale=0.5):
                         template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame")
                         with gr.Column():
                             template_select_button = gr.Button(value="Template select", interactive=True, variant="primary")
+                    
+                    with gr.Column(scale=0.5):
+                        with gr.Row(scale=0.4):
+                            clear_button_clike = gr.Button(value="Clear Clicks", interactive=True)
+                            clear_button_image = gr.Button(value="Clear Image", interactive=True)
 
                         # seg_automask_video_points_per_batch = gr.Slider(
                         #     minimum=0,
@@ -108,6 +113,29 @@ with gr.Blocks() as iface:
             play_state
         ],
         outputs=[video_state, template_frame],
+    )
+
+    # clear
+    # clear_button_clike.click(
+    #     lambda x: ([[], [], []], x, ""),
+    #     [origin_image],
+    #     [click_state, image_input, wiki_output],
+    #     queue=False,
+    #     show_progress=False
+    # )
+    # clear_button_image.click(
+    #     lambda: (None, [], [], [[], [], []], "", ""),
+    #     [],
+    #     [image_input, chatbot, state, click_state, wiki_output, origin_image],
+    #     queue=False,
+    #     show_progress=False
+    # )
+    video_input.clear(
+        lambda: (None, [], [], [[], [], []], None),
+        [],
+        [video_input, state, play_state, video_state, template_frame],
+        queue=False,
+        show_progress=False
     )
 
 iface.queue(concurrency_count=1)
