@@ -52,7 +52,7 @@ class SamControler():
         return: mask, logit, painted image(mask+point)
         '''
         # self.sam_controler.set_image(image)
-        mask, logit = None, None
+        
         if logits is None:
             prompts = {
                 'point_coords': points,
