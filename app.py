@@ -107,7 +107,7 @@ def get_frames_from_video(video_input, play_state):
     frames = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
     return frames, nearest_frame
 
-def inference_all(template_frame, evt:gr.SelectData):
+def inference_all(template_frame, click_state, evt:gr.SelectData):
     coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
 
     # default value
