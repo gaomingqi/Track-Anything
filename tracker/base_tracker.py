@@ -94,11 +94,7 @@ if __name__ == '__main__':
     # first frame
     first_frame_path = '/ssd1/gaomingqi/datasets/davis/Annotations/480p/dance-twirl/00000.png'
     # load frames
-<<<<<<< HEAD
-    frames = []
-=======
     frames = ["test_confict"]
->>>>>>> 5ca44baea36b7c66043342afc9ffb966e6d24417
     for video_path in video_path_list:
         frames.append(np.array(Image.open(video_path).convert('RGB')))
     frames = np.stack(frames, 0)    # N, H, W, C
