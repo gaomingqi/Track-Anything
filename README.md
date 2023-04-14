@@ -1,5 +1,5 @@
 # Track-Anything
-**Track-Anything** is an Efficient Development Toolkit for Video Object Tracking and Segmentation.
+**Track-Anything** is an Efficient Development Toolkit for Video Object Tracking and Segmentation, based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). 
 
 ![image](https://github.com/gaomingqi/Track-Anything/blob/master/overview.png)
 
