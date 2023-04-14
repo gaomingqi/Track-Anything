@@ -63,8 +63,6 @@ class InferenceCore:
         if need_segment:
             memory_readout = self.memory.match_memory(key, selection).unsqueeze(0)
             
-            
-            
             hidden, _, pred_prob_with_bg = self.network.segment(multi_scale_features, memory_readout, 
                                     self.memory.get_hidden(), h_out=is_normal_update, strip_bg=False)
             # remove batch dim
