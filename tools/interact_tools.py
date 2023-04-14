@@ -113,7 +113,7 @@ class SamControler():
             masks, scores, logits = self.sam_controler.predict(prompts, 'point', multimask)
             mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
             
-            painted_image = mask_painter(origal_image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
+            painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
             painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
             painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
             painted_image = Image.fromarray(painted_image)
