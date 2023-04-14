@@ -74,6 +74,7 @@ def get_prompt(inputs, click_state):
         "multimask_output":"True",
     }
     return prompt
+    
 
 def get_frames_from_video(video_input, play_state):
     """
@@ -117,11 +118,17 @@ def inference_all(template_frame, evt:gr.SelectData):
 
 
 with gr.Blocks() as iface:
+    """
+        state for 
+    """
     state = gr.State([])
     play_state = gr.State([])
     video_state = gr.State([[],[],[]])
+    click_state = gr.State([[],[]])
 
     with gr.Row():
+
+        # for user video input
         with gr.Column(scale=1.0):
             video_input = gr.Video().style(height=720)
 
@@ -129,26 +136,45 @@ with gr.Blocks() as iface:
             video_input.play(fn=play_video, inputs=play_state, outputs=play_state)
             video_input.pause(fn=pause_video, inputs=play_state, outputs=play_state)
           
-            with gr.Row():
 
-                with gr.Row():
-                    with gr.Column(scale=0.5):
-                        template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame")
-                        with gr.Column():
-                            template_select_button = gr.Button(value="Template select", interactive=True, variant="primary")
-                    
-                    with gr.Column(scale=0.5):
-                        with gr.Row(scale=0.4):
-                            clear_button_clike = gr.Button(value="Clear Clicks", interactive=True)
+            with gr.Row(scale=1):
+                # put the template frame under the radio button
+                with gr.Column(scale=0.5):
+                     # click points settins, negative or positive, mode continuous or single
+                    with gr.Row():
+                        with gr.Row(scale=0.5):
+                            point_prompt = gr.Radio(
+                                choices=["Positive",  "Negative"],
+                                value="Positive",
+                                label="Point Prompt",
+                                interactive=True)
+                            click_mode = gr.Radio(
+                                choices=["Continuous",  "Single"],
+                                value="Continuous",
+                                label="Clicking Mode",
+                                interactive=True)
+                        with gr.Row(scale=0.5):
+                            clear_button_clike = gr.Button(value="Clear Clicks", interactive=True).style(height=160)
                             clear_button_image = gr.Button(value="Clear Image", interactive=True)
+                    template_frame = gr.Image(type="pil",interactive=True, elem_id="template_frame").style(height=360)
+                    with gr.Column():
+                        template_select_button = gr.Button(value="Template select", interactive=True, variant="primary")
+                    
+                   
+            
+                with gr.Column(scale=0.5):
 
-                        # seg_automask_video_points_per_batch = gr.Slider(
-                        #     minimum=0,
-                        #     maximum=64,
-                        #     step=2,
-                        #     value=64,
-                        #     label="Points per Batch",
-                        # )
+
+                    # for intermedia result check and correction
+                    intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
+
+                    # seg_automask_video_points_per_batch = gr.Slider(
+                    #     minimum=0,
+                    #     maximum=64,
+                    #     step=2,
+                    #     value=64,
+                    #     label="Points per Batch",
+                    # )
 
             seg_automask_video_predict = gr.Button(value="Generator")
     
