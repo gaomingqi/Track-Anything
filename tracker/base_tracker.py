@@ -15,7 +15,7 @@ from dataset.range_transform import im_normalization
 
 
 class BaseTracker:
-    def __init__(self, device, xmem_checkpoint) -> None:
+    def __init__(self, xmem_checkpoint, device) -> None:
         """
         device: model device
         xmem_checkpoint: checkpoint of XMem model

@@ -26,33 +26,14 @@ point_radius = 15
 contour_color = 2
 contour_width = 5
 
-def download_checkpoint(url, folder, filename):
-    os.makedirs(folder, exist_ok=True)
-    filepath = os.path.join(folder, filename)
-
-    if not os.path.exists(filepath):
-        print("download sam checkpoints ......")
-        response = requests.get(url, stream=True)
-        with open(filepath, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-
-        print("download successfully!")
-    return filepath
 
 class SamControler():
-    def __init__(self, sam_checkpoint, model_type, device):
+    def __init__(self, SAM_checkpoint, model_type, device):
         '''
         initialize sam controler
         '''
-        checkpoint_url = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
-        folder ="checkpoints"
-        SAM_checkpoint= 'sam_vit_h_4b8939.pth'
-        SAM_checkpoint = download_checkpoint(checkpoint_url, folder, SAM_checkpoint)
-        # SAM_checkpoint = '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
-        model_type = 'vit_h'
-        device = "cuda:0"
+
+    
         self.sam_controler = BaseSegmenter(SAM_checkpoint, model_type, device)
         
     
