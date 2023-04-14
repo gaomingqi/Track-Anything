@@ -51,7 +51,7 @@ class SamControler():
         it is used in first frame in video
         return: mask, logit, painted image(mask+point)
         '''
-        self.sam_controler.set_image(image)
+        # self.sam_controler.set_image(image)
         if logits is None:
             prompts = {
                 'point_coords': points,
