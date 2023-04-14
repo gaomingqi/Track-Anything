@@ -42,15 +42,17 @@ class TrackingAnything():
         logits = []
         painted_images = []
         for i in range(len(images)):
-            if i ==0:
-                
+            if i ==0:           
                 mask, logit, painted_image = self.xmem.track(images[i], mask)
+                masks.append(mask)
+                logits.append(logit)
+                painted_images.append(painted_image)
                 
             else:
-                 mask, logit, painted_image = self.xmem.track(images[i])
-        masks.append(mask)
-        logits.append(logit)
-        painted_images.append(painted_image)
+                mask, logit, painted_image = self.xmem.track(images[i])
+                masks.append(mask)
+                logits.append(logit)
+                painted_images.append(painted_image)
         return masks, logits, painted_images
     
         

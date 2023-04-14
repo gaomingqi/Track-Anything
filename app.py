@@ -13,6 +13,8 @@ from track_anything import TrackingAnything
 from track_anything import parse_augment
 import requests
 import json
+import torchvision
+import torch 
 
 def download_checkpoint(url, folder, filename):
     os.makedirs(folder, exist_ok=True)
@@ -106,11 +108,35 @@ def get_frames_from_video(video_input, play_state):
     
     key_frame_index = int(timestamp * fps)
     nearest_frame = frames[key_frame_index]
-    frames = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
+    frames_split = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
+    # output_path='./seperate.mp4'
+    # torchvision.io.write_video(output_path, frames[1], fps=fps, video_codec="libx264")
 
     # set image in sam when select the template frame
     model.samcontroler.sam_controler.set_image(nearest_frame)
-    return frames, nearest_frame, nearest_frame
+    return frames_split, nearest_frame, nearest_frame
+
+def generate_video_from_frames(frames, output_path, fps=10):
+    """
+    Generates a video from a list of frames.
+    
+    Args:
+        frames (list of numpy arrays): The frames to include in the video.
+        output_path (str): The path to save the generated video.
+        fps (int, optional): The frame rate of the output video. Defaults to 30.
+    """
+    # height, width, layers = frames[0].shape
+    # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    # video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    
+    # for frame in frames:
+    #     video.write(frame)
+    
+    # video.release()
+    frames = torch.from_numpy(np.asarray(frames))
+    output_path='./output.mp4'
+    torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
+    return output_path
 
 # def get_video_from_frames():
 
@@ -141,11 +167,16 @@ def inference_all(origin_frame, point_prompt, click_state, logit, evt:gr.SelectD
                                                       image=origin_frame, 
                                                       points=np.array(prompt["input_point"]),
                                                       labels=np.array(prompt["input_label"]),
-                                                      logits=logit,
                                                       multimask=prompt["multimask_output"],
 
                                                       )
     return painted_image, click_state, logit, mask
+
+def vos_tracking(video_state, template_mask):
+
+    masks, logits, painted_images = model.generator(images=video_state[1], mask=template_mask)
+    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
+    return video_output
 
 # upload file
 # def upload_callback(image_input, state):
@@ -215,8 +246,9 @@ with gr.Blocks() as iface:
 
 
                     # for intermedia result check and correction
-                    intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
-                    tracking_video_predict = gr.Button(value="Tracking")
+                    # intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
+                    video_output = gr.Video().style(height=360)
+                    tracking_video_predict_button = gr.Button(value="Tracking")
 
                     # seg_automask_video_points_per_batch = gr.Slider(
                     #     minimum=0,
@@ -270,7 +302,11 @@ with gr.Blocks() as iface:
         ]
 
     )
-
+    tracking_video_predict_button.click(
+        fn=vos_tracking,
+        inputs=[video_state, template_mask],
+        outputs=[video_output]
+    )
     # clear
     # clear_button_clike.click(
     #     lambda x: ([[], [], []], x, ""),
