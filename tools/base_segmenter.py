@@ -31,6 +31,7 @@ class BaseSegmenter:
     def set_image(self, image: np.ndarray):
         # PIL.open(image_path) 3channel: RGB
         # image embedding: avoid encode the same image multiple times
+        self.orignal_image = image
         if self.embedded:
             print('repeat embedding, please reset_image.')
             return
