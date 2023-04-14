@@ -52,19 +52,22 @@ class SamControler():
         return: mask, logit, painted image(mask+point)
         '''
         # self.sam_controler.set_image(image)
+        mask, logit = None, None
         if logits is None:
             prompts = {
                 'point_coords': points,
                 'point_labels': labels,
             }
+            masks, scores, logits = self.sam_controler.predict(prompts, 'point', multimask)
+            mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
         else:
             prompts = {
                 'point_coords': points,
                 'point_labels': labels,
                 'mask_input': logits[None, :, :]
             }
-        masks, scores, logits = self.sam_controler.predict(prompts, 'point', multimask)
-        mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
+            masks, scores, logits = self.sam_controler.predict(prompts, 'both', multimask)
+            mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
         
         assert len(points)==len(labels)
         
