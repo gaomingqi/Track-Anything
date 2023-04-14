@@ -12,6 +12,9 @@ sys.path.append(sys.path[0]+"/tracker/model")
 from track_anything import TrackingAnything
 from track_anything import parse_augment
 import requests
+import json
+import torchvision
+import torch 
 
 def download_checkpoint(url, folder, filename):
     os.makedirs(folder, exist_ok=True)
@@ -41,8 +44,7 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port=12212
-
+args.port = 12213
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
 
 
@@ -60,13 +62,15 @@ def play_video(play_state):
     return play_state
 
 # convert points input to prompt state
-def get_prompt(inputs, click_state):
-    points = []
-    labels = []
+def get_prompt(click_state, click_input):
+    inputs = json.loads(click_input)
+    points = click_state[0]
+    labels = click_state[1]
     for input in inputs:
         points.append(input[:2])
         labels.append(input[2])
     click_state[0] = points
+    click_state[1] = labels
     prompt = {
         "prompt_type":["click"],
         "input_point":click_state[0],
@@ -99,22 +103,95 @@ def get_frames_from_video(video_input, play_state):
     except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
         print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
 
-    for frame in frames:
-        frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    for index, frame in enumerate(frames):
+        frames[index] = np.asarray(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
     
     key_frame_index = int(timestamp * fps)
     nearest_frame = frames[key_frame_index]
-    frames = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
-    return frames, nearest_frame
+    frames_split = [frames[:key_frame_index], frames[key_frame_index:], nearest_frame]
+    # output_path='./seperate.mp4'
+    # torchvision.io.write_video(output_path, frames[1], fps=fps, video_codec="libx264")
 
-def inference_all(template_frame, evt:gr.SelectData):
-    coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
+    # set image in sam when select the template frame
+    model.samcontroler.sam_controler.set_image(nearest_frame)
+    return frames_split, nearest_frame, nearest_frame
+
+def generate_video_from_frames(frames, output_path, fps=10):
+    """
+    Generates a video from a list of frames.
+    
+    Args:
+        frames (list of numpy arrays): The frames to include in the video.
+        output_path (str): The path to save the generated video.
+        fps (int, optional): The frame rate of the output video. Defaults to 30.
+    """
+    # height, width, layers = frames[0].shape
+    # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    # video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    
+    # for frame in frames:
+    #     video.write(frame)
+    
+    # video.release()
+    frames = torch.from_numpy(np.asarray(frames))
+    output_path='./output.mp4'
+    torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
+    return output_path
+
+# def get_video_from_frames():
+
+#     return video_output
+
+def inference_all(origin_frame, point_prompt, click_state, logit, evt:gr.SelectData):
+    """
+    Args:
+        template_frame: PIL.Image
+        point_prompt: flag for positive or negative button click
+        click_state: [[points], [labels]]
+    """
+    if point_prompt == "Positive":
+        coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
+    else:
+        coordinate = "[[{},{},0]]".format(evt.index[0], evt.index[1])
+    
+    # prompt for sam model
+    prompt = get_prompt(click_state=click_state, click_input=coordinate)
 
     # default value
-    points = np.array([[evt.index[0],evt.index[1]]])
-    labels= np.array([1])
-    mask, logit, painted_image = model.inference_step(first_flag=True, interact_flag=False, image=np.asarray(template_frame), same_image_flag=False,points=points, labels=labels,logits=None,multimask=True)
-    return painted_image
+    # points = np.array([[evt.index[0],evt.index[1]]])
+    # labels= np.array([1])
+    if len(logit)==0:
+        logit = None
+    
+    mask, logit, painted_image = model.first_frame_click( 
+                                                      image=origin_frame, 
+                                                      points=np.array(prompt["input_point"]),
+                                                      labels=np.array(prompt["input_label"]),
+                                                      multimask=prompt["multimask_output"],
+
+                                                      )
+    return painted_image, click_state, logit, mask
+
+def vos_tracking(video_state, template_mask):
+
+    masks, logits, painted_images = model.generator(images=video_state[1], mask=template_mask)
+    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
+    return video_output
+
+# upload file
+# def upload_callback(image_input, state):
+#     state = [] + [('Image size: ' + str(image_input.size), None)]
+#     click_state = [[], [], []]
+#     res = 1024
+#     width, height = image_input.size
+#     ratio = min(1.0 * res / max(width, height), 1.0)
+#     if ratio < 1.0:
+#         image_input = image_input.resize((int(width * ratio), int(height * ratio)))
+#         print('Scaling input image to {}'.format(image_input.size))
+#     model.segmenter.image = None
+#     model.segmenter.image_embedding = None
+#     model.segmenter.set_image(image_input)
+#     return state, state, image_input, click_state, image_input
 
 
 with gr.Blocks() as iface:
@@ -125,6 +202,9 @@ with gr.Blocks() as iface:
     play_state = gr.State([])
     video_state = gr.State([[],[],[]])
     click_state = gr.State([[],[]])
+    logits = gr.State([])
+    origin_image = gr.State(None)
+    template_mask = gr.State(None)
 
     with gr.Row():
 
@@ -166,7 +246,9 @@ with gr.Blocks() as iface:
 
 
                     # for intermedia result check and correction
-                    intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
+                    # intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
+                    video_output = gr.Video().style(height=360)
+                    tracking_video_predict_button = gr.Button(value="Tracking")
 
                     # seg_automask_video_points_per_batch = gr.Slider(
                     #     minimum=0,
@@ -176,7 +258,7 @@ with gr.Blocks() as iface:
                     #     label="Points per Batch",
                     # )
 
-            seg_automask_video_predict = gr.Button(value="Generator")
+            
     
         
         # Display the first frame 
@@ -207,20 +289,24 @@ with gr.Blocks() as iface:
             video_input, 
             play_state
         ],
-        outputs=[video_state, template_frame],
+        outputs=[video_state, template_frame, origin_image],
     )
 
     template_frame.select(
         fn=inference_all,
         inputs=[
-            template_frame
+            origin_image, point_prompt, click_state, logits
         ],
         outputs=[
-            template_frame
+            template_frame, click_state, logits, template_mask
         ]
 
     )
-
+    tracking_video_predict_button.click(
+        fn=vos_tracking,
+        inputs=[video_state, template_mask],
+        outputs=[video_output]
+    )
     # clear
     # clear_button_clike.click(
     #     lambda x: ([[], [], []], x, ""),
