@@ -41,7 +41,7 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port=12212
+args.port=12219
 
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
 
@@ -99,8 +99,8 @@ def get_frames_from_video(video_input, play_state):
     except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
         print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
 
-    for frame in frames:
-        frame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    for index, frame in enumerate(frames):
+        frames[index] = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     
     key_frame_index = int(timestamp * fps)
     nearest_frame = frames[key_frame_index]
