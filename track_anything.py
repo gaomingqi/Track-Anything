@@ -24,6 +24,18 @@ class TrackingAnything():
         
         mask, logit, painted_image = self.xmem.track(image, logit)
         return mask, logit, painted_image
+    
+    def first_frame_click(self, image: np.ndarray, points:np.ndarray, labels: np.ndarray, multimask=True):
+        mask, logit, painted_image = self.samcontroler.first_frame_click(image, points, labels, multimask)
+        return mask, logit, painted_image
+    
+    def interact(self, image: np.ndarray, same_image_flag: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
+        mask, logit, painted_image = self.samcontroler.interact_loop(image, same_image_flag, points, labels, logits, multimask)
+        return mask, logit, painted_image
+
+    def generator(self, image: np.ndarray, logits:np.ndarray):
+        mask, logit, painted_image = self.xmem.track(image, logits)
+        return mask, logit, painted_image
         
         
 def parse_augment():
