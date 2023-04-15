@@ -116,7 +116,7 @@ def get_frames_from_video(video_input, play_state):
     model.samcontroler.sam_controler.set_image(nearest_frame)
     return frames_split, nearest_frame, nearest_frame
 
-def generate_video_from_frames(frames, output_path, fps=10):
+def generate_video_from_frames(frames, output_path, fps=30):
     """
     Generates a video from a list of frames.
     
@@ -213,7 +213,7 @@ with gr.Blocks() as iface:
             video_input = gr.Video().style(height=720)
 
             # listen to the user action for play and pause input video
-            video_input.play(fn=play_video, inputs=play_state, outputs=play_state)
+            video_input.play(fn=play_video, inputs=play_state, outputs=play_state, scroll_to_output=True, show_progress=True)
             video_input.pause(fn=pause_video, inputs=play_state, outputs=play_state)
           
 
