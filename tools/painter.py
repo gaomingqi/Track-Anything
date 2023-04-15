@@ -156,6 +156,20 @@ def mask_painter(input_image, input_mask, mask_color=5, mask_alpha=0.7, contour_
 
 	return painted_image
 
+def background_remover(input_image, input_mask):
+	"""
+	input_image: H, W, 3, np.array
+	input_mask: H, W, np.array
+
+	image_wo_background: PIL.Image	
+	"""
+	assert input_image.shape[:2] == input_mask.shape, 'different shape between image and mask'
+	# 0: background, 1: foreground
+	mask = np.expand_dims(np.clip(input_mask, 0, 1), axis=2)*255
+	image_wo_background = np.concatenate([input_image, mask], axis=2)		# H, W, 4
+	image_wo_background = Image.fromarray(image_wo_background).convert('RGBA')
+
+	return image_wo_background
 
 if __name__ == '__main__':
 	input_image = np.array(Image.open('images/painter_input_image.jpg').convert('RGB'))
@@ -194,3 +208,8 @@ if __name__ == '__main__':
 	# save
 	painted_image = Image.fromarray(painted_image_2)
 	painted_image.save('images/point_painter_2.png')
+
+	# example of background remover
+	input_image = np.array(Image.open('images/original.png').convert('RGB'))
+	image_wo_background = background_remover(input_image, input_mask)	# return PIL.Image
+	image_wo_background.save('images/image_wo_background.png')
