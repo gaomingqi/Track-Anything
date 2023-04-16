@@ -5,7 +5,7 @@
 
 ## Demo
 
-https://user-images.githubusercontent.com/28050374/232312494-737066ea-93b2-4412-bdc3-30f8f0cf8647.mp4
+https://user-images.githubusercontent.com/28050374/232322963-140b44a1-0b65-409a-b3fa-ce9f780aa40e.MP4
 
 ## Get Started
 #### Linux
