@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Object Segmentation</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Video Object Segmentation</h1>
+    
+    <input type="file" id="video-input" accept="video/*">
+    <button id="upload-video">Upload Video</button>
+    <br>
+    <button id="template-select">Template Select</button>
+    <button id="sam-refine">SAM Refine</button>
+    <br>
+    <button id="track-video">Track Video</button>
+    <button id="track-image">Track Image</button>
+    <br>
+    <a href="/download_video" id="download-video" download>Download Video</a>
+
+    <script>
+        // JavaScript code for handling interactions with the server
+$("#upload-video").click(function() {
+    var videoInput = document.getElementById("video-input");
+    var formData = new FormData();
+    formData.append("video", videoInput.files[0]);
+
+    $.ajax({
+        url: "/upload_video",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            console.log(response);
+            // Process the response and update the UI accordingly
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log(textStatus, errorThrown);
+        }
+    });
+});
+
+    </script>
+</body>
+</html>
+
