@@ -6,3 +6,4 @@ docs/
 debug_images/
 *.png
 *.jpg
+*.npy
