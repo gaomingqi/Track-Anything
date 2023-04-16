@@ -62,7 +62,6 @@ def get_prompt(click_state, click_input):
     }
     return prompt
     
-
 def get_frames_from_video(video_input, play_state):
     """
     Args:
@@ -121,7 +120,9 @@ def generate_video_from_frames(frames, output_path, fps=30):
     torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
     return output_path
 
-
+def model_reset():
+    model.xmem.clear_memory()
+    return None
 
 def sam_refine(origin_frame, point_prompt, click_state, logit, evt:gr.SelectData):
     """
@@ -149,57 +150,60 @@ def sam_refine(origin_frame, point_prompt, click_state, logit, evt:gr.SelectData
                                                       points=np.array(prompt["input_point"]),
                                                       labels=np.array(prompt["input_label"]),
                                                       multimask=prompt["multimask_output"],
-
                                                       )
-    yield painted_image, click_state, logit, mask
+    return painted_image, click_state, logit, mask
+
+
 
 def vos_tracking_video(video_state, template_mask):
 
     masks, logits, painted_images = model.generator(images=video_state[1], mask=template_mask)
     video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
-    return video_output
+    # image_selection_slider = gr.Slider(minimum=1, maximum=len(video_state[1]), value=1, label="Image Selection", interactive=True)
+    return video_output, painted_images, masks, logits
 
-def vos_tracking_image(video_state, template_mask, result_queue, done_queue):
-    images = video_state[1]
-    images = images[:5]
-    for i in range(len(images)):
-        if i ==0:           
-            mask, logit, painted_image = model.xmem.track(images[i], template_mask)
-            result_queue['images'].put(images[i])
-            result_queue['masks'].put(mask)
-            result_queue['logits'].put(logit)
-            result_queue['painted'].put(painted_image)
-            
-        else:
-            mask, logit, painted_image = model.xmem.track(images[i])
-            result_queue['images'].put(images[i])
-            result_queue['masks'].put(mask)
-            result_queue['logits'].put(logit)
-            result_queue['painted'].put(painted_image)
-        done_queue.put(False)
-        time.sleep(1)
-    done_queue.put(True)
+def vos_tracking_image(image_selection_slider, painted_images):
 
-def update_gradio_image(result_queue, done_queue):
-    print("update_gradio_image")
-    while True:
-        if not done_queue.empty():
-            if done_queue.get():
-                break
-        if not result_queue.empty():
-            image = result_queue['images'].get()
-            mask = result_queue['masks'].get()
-            logit = result_queue['logits'].get()
-            painted_image = result_queue['painted'].get()
-            yield painted_image
+    # images = video_state[1]
+    percentage = image_selection_slider / 100
+    select_frame_num = int(percentage * len(painted_images))
+    return painted_images[select_frame_num], select_frame_num
 
-def parallel_tracking(video_state, template_mask):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        executor.submit(vos_tracking_image, video_state, template_mask, result_queue, done_queue)
-        executor.submit(update_gradio_image, result_queue, done_queue)
-
+def interactive_correction(video_state, point_prompt, click_state, select_correction_frame, evt: gr.SelectData):
+    """
+    Args:
+        template_frame: PIL.Image
+        point_prompt: flag for positive or negative button click
+        click_state: [[points], [labels]]
+    """
+    refine_image = video_state[1][select_correction_frame]
+    if point_prompt == "Positive":
+        coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
+    else:
+        coordinate = "[[{},{},0]]".format(evt.index[0], evt.index[1])
     
-         
+    # prompt for sam model
+    prompt = get_prompt(click_state=click_state, click_input=coordinate)
+    model.samcontroler.seg_again(refine_image)
+    corrected_mask, corrected_logit, corrected_painted_image = model.first_frame_click( 
+                                                      image=refine_image, 
+                                                      points=np.array(prompt["input_point"]),
+                                                      labels=np.array(prompt["input_label"]),
+                                                      multimask=prompt["multimask_output"],
+                                                      )
+    return corrected_painted_image, [corrected_mask, corrected_logit, corrected_painted_image]
+
+def correct_track(video_state, select_correction_frame, corrected_state, masks, logits, painted_images):
+    model.xmem.clear_memory()
+    # inference the following images
+    following_images = video_state[1][select_correction_frame+1:]
+    corrected_masks, corrected_logits, corrected_painted_images = model.generator(images=following_images, mask=corrected_state[0])
+    masks = masks[:select_correction_frame] + corrected_masks
+    logits = logits[:select_correction_frame] + corrected_logits
+    painted_images = painted_images[:select_correction_frame] + corrected_painted_images
+    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
+
+    return video_output, painted_images, logits, masks 
 
 # check and download checkpoints if needed
 SAM_checkpoint = "sam_vit_h_4b8939.pth" 
@@ -212,13 +216,10 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port = 12214
+args.port = 12212
+args.device = "cuda:2"
+
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
-result_queue = {"images": queue.Queue(),
-                            "masks": queue.Queue(),
-                            "logits": queue.Queue(),
-                            "painted": queue.Queue()}
-done_queue = queue.Queue()
 
 with gr.Blocks() as iface:
     """
@@ -229,8 +230,12 @@ with gr.Blocks() as iface:
     video_state = gr.State([[],[],[]])
     click_state = gr.State([[],[]])
     logits = gr.State([])
+    masks = gr.State([])
+    painted_images = gr.State([])
     origin_image = gr.State(None)
     template_mask = gr.State(None)
+    select_correction_frame = gr.State(None)
+    corrected_state = gr.State([[],[],[]])
     # queue value for image refresh, origin image, mask, logits, painted image
 
 
@@ -277,10 +282,11 @@ with gr.Blocks() as iface:
                     # for intermedia result check and correction
                     # intermedia_image = gr.Image(type="pil", interactive=True, elem_id="intermedia_frame").style(height=360)
                     video_output = gr.Video().style(height=360)
-                    tracking_video_predict_button = gr.Button(value="Video")
+                    tracking_video_predict_button = gr.Button(value="Tracking")
 
                     image_output = gr.Image(type="pil", interactive=True, elem_id="image_output").style(height=360)
-                    tracking_image_predict_button = gr.Button(value="Tracking")
+                    image_selection_slider = gr.Slider(minimum=0, maximum=100, step=0.1, value=0, label="Image Selection", interactive=True)
+                    correct_track_button = gr.Button(value="Interactive Correction")
 
     template_frame.select(
         fn=sam_refine,
@@ -304,37 +310,44 @@ with gr.Blocks() as iface:
     tracking_video_predict_button.click(
         fn=vos_tracking_video,
         inputs=[video_state, template_mask],
-        outputs=[video_output]
+        outputs=[video_output, painted_images, masks, logits]
     )
-    tracking_image_predict_button.click(
-        fn=parallel_tracking,
-        inputs=[video_state, template_mask],
-        outputs=[image_output]
+    image_selection_slider.release(fn=vos_tracking_image, 
+                                   inputs=[image_selection_slider, painted_images], outputs=[image_output, select_correction_frame], api_name="select_image")
+    # correction
+    image_output.select(
+        fn=interactive_correction,
+        inputs=[video_state, point_prompt, click_state, select_correction_frame],
+        outputs=[image_output, corrected_state]
     )
-
-    # clear
-    # clear_button_clike.click(
-    #     lambda x: ([[], [], []], x, ""),
-    #     [origin_image],
-    #     [click_state, image_input, wiki_output],
-    #     queue=False,
-    #     show_progress=False
-    # )
-    # clear_button_image.click(
-    #     lambda: (None, [], [], [[], [], []], "", ""),
-    #     [],
-    #     [image_input, chatbot, state, click_state, wiki_output, origin_image],
-    #     queue=False,
-    #     show_progress=False
-    # )
+    correct_track_button.click(
+        fn=correct_track,
+        inputs=[video_state, select_correction_frame, corrected_state, masks, logits, painted_images],
+        outputs=[video_output, painted_images, logits, masks ]
+    )
+    
+    # clear input
     video_input.clear(
-        lambda: (None, [], [], [[], [], []], None),
+        lambda: (None, [], [], [[], [], []], 
+                 None, "", "", "", "", "", "", "", [[], []],
+                 None),
         [],
-        [video_input, state, play_state, video_state, template_frame],
+        [video_input, state, play_state, video_state, 
+         template_frame, video_output, image_output, origin_image, template_mask, painted_images, masks, logits, click_state,
+         select_correction_frame],
         queue=False,
         show_progress=False
     )
-
+    clear_button_image.click(
+        fn=model_reset
+    )
+    clear_button_clike.click(
+       lambda: ([[],[]]),
+        [],
+        [click_state],
+        queue=False,
+        show_progress=False
+    ) 
 iface.queue(concurrency_count=1)
 iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
 
