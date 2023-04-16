@@ -22,5 +22,5 @@ python app.py --device cuda:0 --sam_model_type vit_h --port 12212
 ```
 
 ## Acknowledgement
-s
+
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). Thanks for the authors for their efforts.
