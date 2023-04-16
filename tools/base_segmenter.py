@@ -110,7 +110,7 @@ if __name__ == "__main__":
     prompts = {
         'point_coords': np.array([[500, 375], [1125, 625]]),
         'point_labels': np.array([1, 0]), 
-        'mask_input': mask_input [None, :, :]
+        'mask_input': mask_input[None, :, :]
     }
     masks, scores, logits = base_segmenter.predict(prompts, mode, multimask=True)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
     painted_image = mask_painter(image, masks[np.argmax(scores)].astype('uint8'), background_alpha=0.8)

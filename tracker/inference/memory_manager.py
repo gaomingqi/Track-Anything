@@ -138,7 +138,7 @@ class MemoryManager:
                 affinity_one_group = do_softmax(similarity[:, -self.work_mem.get_v_size(gi):], 
                     top_k=self.top_k, inplace=(gi==num_groups-1))
                 affinity.append(affinity_one_group)
-                
+            
             all_memory_value = self.work_mem.value
 
         # Shared affinity within each group
@@ -212,6 +212,13 @@ class MemoryManager:
         HW = self.HW
         candidate_value = []
         total_work_mem_size = self.work_mem.size
+
+        # determine memory indices to be compressed and removed
+        # uniform sampling from 1 to -2
+        num_memory_elements = total_work_mem_size // HW
+        spans = [[6*HW, 8*HW]]
+        keeps = [[0, 6*HW], [8*HW, 15*HW]]
+        
         for gv in self.work_mem.value:
             # Some object groups might be added later in the video
             # So not all keys have values associated with all objects
@@ -219,7 +226,12 @@ class MemoryManager:
             mem_size_in_this_group = gv.shape[-1]
             if mem_size_in_this_group == total_work_mem_size:
                 # full LT
-                candidate_value.append(gv[:,:,HW:-self.min_work_elements+HW])
+                # candidate_value.append(gv[:,:,HW:-self.min_work_elements+HW])
+                candidate_value.append(torch.cat([gv[:,:,span[0]:span[1]] for span in spans], dim=-1))
+                # values = []
+                # for span in spans:
+                #     values.append(gv[:,:,span[0]:span[1]])
+                # candidate_value.append(torch.concat(values, dim=-1))
             else:
                 # mem_size is smaller than total_work_mem_size, but at least HW
                 assert HW <= mem_size_in_this_group < total_work_mem_size
@@ -232,10 +244,12 @@ class MemoryManager:
 
         # perform memory consolidation
         prototype_key, prototype_value, prototype_shrinkage = self.consolidation(
-            *self.work_mem.get_all_sliced(HW, -self.min_work_elements+HW), candidate_value)
+            *self.work_mem.get_all_sliced(HW, -self.min_work_elements+HW, spans), candidate_value)
 
         # remove consolidated working memory
-        self.work_mem.sieve_by_range(HW, -self.min_work_elements+HW, min_size=self.min_work_elements+HW)
+        self.work_mem.sieve_by_range(HW, -self.min_work_elements+HW, min_size=self.min_work_elements+HW, keeps=keeps)
+
+        # print('remove working memory')
 
         # add to long-term memory
         self.long_mem.add(prototype_key, prototype_value, prototype_shrinkage, selection=None, objects=None)

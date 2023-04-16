@@ -63,15 +63,19 @@ class InferenceCore:
         if need_segment:
             memory_readout = self.memory.match_memory(key, selection).unsqueeze(0)
             
-            hidden, _, pred_prob_with_bg = self.network.segment(multi_scale_features, memory_readout, 
+            hidden, pred_logits_with_bg, pred_prob_with_bg = self.network.segment(multi_scale_features, memory_readout, 
                                     self.memory.get_hidden(), h_out=is_normal_update, strip_bg=False)
             # remove batch dim
             pred_prob_with_bg = pred_prob_with_bg[0]
             pred_prob_no_bg = pred_prob_with_bg[1:]
+
+            pred_logits_with_bg = pred_logits_with_bg[0]
+            pred_logits_no_bg = pred_logits_with_bg[1:]
+
             if is_normal_update:
                 self.memory.set_hidden(hidden)
         else:
-            pred_prob_no_bg = pred_prob_with_bg = None
+            pred_prob_no_bg = pred_prob_with_bg = pred_logits_with_bg = pred_logits_no_bg = None
 
         # use the input mask if any
         if mask is not None:
@@ -104,5 +108,8 @@ class InferenceCore:
             if is_deep_update:
                 self.memory.set_hidden(hidden)
                 self.last_deep_update_ti = self.curr_ti
-                
-        return unpad(pred_prob_with_bg, self.pad)
+        
+        if pred_logits_with_bg is None:
+            return unpad(pred_prob_with_bg, self.pad), None
+        else:
+            return unpad(pred_prob_with_bg, self.pad), unpad(pred_logits_with_bg, self.pad)
