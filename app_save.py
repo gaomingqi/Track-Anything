@@ -71,10 +71,12 @@ def get_frames_from_video(video_input, play_state):
         [[0:nearest_frame], [nearest_frame:], nearest_frame]
     """
     video_path = video_input
+    # video_name = video_path.split('/')[-1]
+    
     try:
         timestamp = play_state[1] - play_state[0]
     except:
-        timestamp = 0.1
+        timestamp = 0
     frames = []
     try:
         cap = cv2.VideoCapture(video_path)
@@ -158,11 +160,19 @@ def sam_refine(origin_frame, point_prompt, click_state, logit, evt:gr.SelectData
 
 
 
-def vos_tracking_video(video_state, template_mask,fps):
+def vos_tracking_video(video_state, template_mask,fps,video_input):
 
     masks, logits, painted_images = model.generator(images=video_state[1], template_mask=template_mask)
     video_output = generate_video_from_frames(painted_images, output_path="./output.mp4", fps=fps)
     # image_selection_slider = gr.Slider(minimum=1, maximum=len(video_state[1]), value=1, label="Image Selection", interactive=True)
+    video_name = video_input.split('/')[-1].split('.')[0]
+    result_path = os.path.join('/hhd3/gaoshang/Track-Anything/results/'+video_name)
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    i=0
+    for mask in masks:
+        np.save(os.path.join(result_path,'{:05}.npy'.format(i)), mask)
+        i+=1
     return video_output, painted_images, masks, logits
 
 def vos_tracking_image(image_selection_slider, painted_images):
@@ -196,7 +206,7 @@ def interactive_correction(video_state, point_prompt, click_state, select_correc
                                                       )
     return corrected_painted_image, [corrected_mask, corrected_logit, corrected_painted_image]
 
-def correct_track(video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps):
+def correct_track(video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps, video_input):
     model.xmem.clear_memory()
     # inference the following images
     following_images = video_state[1][select_correction_frame:]
@@ -206,6 +216,14 @@ def correct_track(video_state, select_correction_frame, corrected_state, masks, 
     painted_images = painted_images[:select_correction_frame] + corrected_painted_images
     video_output = generate_video_from_frames(painted_images, output_path="./output.mp4", fps=fps)
 
+    video_name = video_input.split('/')[-1].split('.')[0]
+    result_path = os.path.join('/hhd3/gaoshang/Track-Anything/results/'+video_name)
+    if not os.path.exists(result_path):
+        os.makedirs(result_path)
+    i=0
+    for mask in masks:
+        np.save(os.path.join(result_path,'{:05}.npy'.format(i)), mask)
+        i+=1
     return video_output, painted_images, logits, masks 
 
 # check and download checkpoints if needed
@@ -219,7 +237,7 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port = 12219
+args.port = 12207
 args.device = "cuda:5"
 
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
@@ -240,6 +258,7 @@ with gr.Blocks() as iface:
     select_correction_frame = gr.State(None)
     corrected_state = gr.State([[],[],[]])
     fps = gr.State([])
+    # video_name = gr.State([])
     # queue value for image refresh, origin image, mask, logits, painted image
 
 
@@ -308,12 +327,13 @@ with gr.Blocks() as iface:
             video_input, 
             play_state
         ],
+        # outputs=[video_state, template_frame, origin_image, fps, video_name],
         outputs=[video_state, template_frame, origin_image, fps],
     )   
 
     tracking_video_predict_button.click(
         fn=vos_tracking_video,
-        inputs=[video_state, template_mask, fps],
+        inputs=[video_state, template_mask, fps, video_input],
         outputs=[video_output, painted_images, masks, logits]
     )
     image_selection_slider.release(fn=vos_tracking_image, 
@@ -326,9 +346,11 @@ with gr.Blocks() as iface:
     )
     correct_track_button.click(
         fn=correct_track,
-        inputs=[video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps],
+        inputs=[video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps,video_input],
         outputs=[video_output, painted_images, logits, masks ]
     )
+   
+    
     
     # clear input
     video_input.clear(
