@@ -21,10 +21,6 @@ pip install -r requirements.txt
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
 ```
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 094430ad280465347ddca6ec9f8f39a0ebfeb749
 ## Acknowledgement
 
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). Thanks for the authors for their efforts.
