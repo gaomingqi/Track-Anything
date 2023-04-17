@@ -219,7 +219,7 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port = 12212
+args.port = 12219
 args.device = "cuda:5"
 
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
