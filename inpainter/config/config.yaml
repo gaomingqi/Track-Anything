@@ -1,0 +1,4 @@
+# config info for E2FGVI
+neighbor_stride: 5
+num_ref: -1
+step: 10
