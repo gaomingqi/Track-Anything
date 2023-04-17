@@ -14,8 +14,12 @@ https://user-images.githubusercontent.com/28050374/232322963-140b44a1-0b65-409a-
 git clone https://github.com/gaomingqi/Track-Anything.git
 cd Track-Anything
 
-# Install dependencies:
+# Install dependencies: 
 pip install -r requirements.txt
+
+# Install dependencies if using inpainting: 
+pip install -U openmim
+mim install mmcv
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
