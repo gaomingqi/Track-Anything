@@ -82,14 +82,14 @@ def get_frames_from_video(video_input, play_state):
         while cap.isOpened():
             ret, frame = cap.read()
             if ret == True:
-                frames.append(frame)
+                frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
             else:
                 break
     except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
         print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
 
-    for index, frame in enumerate(frames):
-        frames[index] = np.asarray(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+    # for index, frame in enumerate(frames):
+        # frames[index] = np.asarray(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
     
     key_frame_index = int(timestamp * fps)
     nearest_frame = frames[key_frame_index]
@@ -99,7 +99,7 @@ def get_frames_from_video(video_input, play_state):
 
     # set image in sam when select the template frame
     model.samcontroler.sam_controler.set_image(nearest_frame)
-    return frames_split, nearest_frame, nearest_frame
+    return frames_split, nearest_frame, nearest_frame, fps
 
 def generate_video_from_frames(frames, output_path, fps=30):
     """
@@ -158,10 +158,10 @@ def sam_refine(origin_frame, point_prompt, click_state, logit, evt:gr.SelectData
 
 
 
-def vos_tracking_video(video_state, template_mask):
+def vos_tracking_video(video_state, template_mask,fps):
 
-    masks, logits, painted_images = model.generator(images=video_state[1], mask=template_mask)
-    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
+    masks, logits, painted_images = model.generator(images=video_state[1], template_mask=template_mask)
+    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4", fps=fps)
     # image_selection_slider = gr.Slider(minimum=1, maximum=len(video_state[1]), value=1, label="Image Selection", interactive=True)
     return video_output, painted_images, masks, logits
 
@@ -196,15 +196,15 @@ def interactive_correction(video_state, point_prompt, click_state, select_correc
                                                       )
     return corrected_painted_image, [corrected_mask, corrected_logit, corrected_painted_image]
 
-def correct_track(video_state, select_correction_frame, corrected_state, masks, logits, painted_images):
+def correct_track(video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps):
     model.xmem.clear_memory()
     # inference the following images
     following_images = video_state[1][select_correction_frame:]
-    corrected_masks, corrected_logits, corrected_painted_images = model.generator(images=following_images, mask=corrected_state[0])
+    corrected_masks, corrected_logits, corrected_painted_images = model.generator(images=following_images, template_mask=corrected_state[0])
     masks = masks[:select_correction_frame] + corrected_masks
     logits = logits[:select_correction_frame] + corrected_logits
     painted_images = painted_images[:select_correction_frame] + corrected_painted_images
-    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4")
+    video_output = generate_video_from_frames(painted_images, output_path="./output.mp4", fps=fps)
 
     return video_output, painted_images, logits, masks 
 
@@ -219,8 +219,8 @@ xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoi
 
 # args, defined in track_anything.py
 args = parse_augment()
-args.port = 12315
-args.device = "cuda:2"
+args.port = 12212
+args.device = "cuda:5"
 
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
 
@@ -239,6 +239,7 @@ with gr.Blocks() as iface:
     template_mask = gr.State(None)
     select_correction_frame = gr.State(None)
     corrected_state = gr.State([[],[],[]])
+    fps = gr.State([])
     # queue value for image refresh, origin image, mask, logits, painted image
 
 
@@ -307,12 +308,12 @@ with gr.Blocks() as iface:
             video_input, 
             play_state
         ],
-        outputs=[video_state, template_frame, origin_image],
+        outputs=[video_state, template_frame, origin_image, fps],
     )   
 
     tracking_video_predict_button.click(
         fn=vos_tracking_video,
-        inputs=[video_state, template_mask],
+        inputs=[video_state, template_mask, fps],
         outputs=[video_output, painted_images, masks, logits]
     )
     image_selection_slider.release(fn=vos_tracking_image, 
@@ -325,7 +326,7 @@ with gr.Blocks() as iface:
     )
     correct_track_button.click(
         fn=correct_track,
-        inputs=[video_state, select_correction_frame, corrected_state, masks, logits, painted_images],
+        inputs=[video_state, select_correction_frame, corrected_state, masks, logits, painted_images, fps],
         outputs=[video_output, painted_images, logits, masks ]
     )
     
