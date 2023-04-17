@@ -29,9 +29,6 @@ class KeyValueMemoryStore:
         # shrinkage and selection are also single tensors
         self.s = self.e = None
 
-        # cumulated probs, softmax(HW) -> THW
-        self.cumulated_probs = []
-
         # usage
         if self.count_usage:
             self.use_count = self.life_count = None
@@ -101,7 +98,7 @@ class KeyValueMemoryStore:
         self.use_count += usage.view_as(self.use_count)
         self.life_count += 1
 
-    def sieve_by_range(self, start: int, end: int, min_size: int, keeps: List):
+    def sieve_by_range(self, start: int, end: int, min_size: int):
         # keep only the elements *outside* of this range (with some boundary conditions)
         # i.e., concat (a[:start], a[end:])
         # min_size is only used for values, we do not sieve values under this size
@@ -122,31 +119,18 @@ class KeyValueMemoryStore:
                 if self.v[gi].shape[-1] >= min_size:
                     self.v[gi] = self.v[gi][:,:,:start]
         else:
-            # self.k = torch.cat([self.k[:,:,:start], self.k[:,:,end:]], -1)
-            # if self.count_usage:
-            #     self.use_count = torch.cat([self.use_count[:,:,:start], self.use_count[:,:,end:]], -1)
-            #     self.life_count = torch.cat([self.life_count[:,:,:start], self.life_count[:,:,end:]], -1)
-            # if self.s is not None:
-            #     self.s = torch.cat([self.s[:,:,:start], self.s[:,:,end:]], -1)
-            # if self.e is not None:
-            #     self.e = torch.cat([self.e[:,:,:start], self.e[:,:,end:]], -1)
-            
-            # for gi in range(self.num_groups):
-            #     if self.v[gi].shape[-1] >= min_size:
-            #         self.v[gi] = torch.cat([self.v[gi][:,:,:start], self.v[gi][:,:,end:]], -1)
-
-            # key memory to be kept
-            self.k = torch.cat([self.k[:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
+            self.k = torch.cat([self.k[:,:,:start], self.k[:,:,end:]], -1)
             if self.count_usage:
-                self.use_count = torch.cat([self.use_count[:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
-                self.life_count = torch.cat([self.life_count[:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
+                self.use_count = torch.cat([self.use_count[:,:,:start], self.use_count[:,:,end:]], -1)
+                self.life_count = torch.cat([self.life_count[:,:,:start], self.life_count[:,:,end:]], -1)
             if self.s is not None:
-                self.s = torch.cat([self.s[:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
+                self.s = torch.cat([self.s[:,:,:start], self.s[:,:,end:]], -1)
             if self.e is not None:
-                self.e = torch.cat([self.e[:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
+                self.e = torch.cat([self.e[:,:,:start], self.e[:,:,end:]], -1)
+            
             for gi in range(self.num_groups):
                 if self.v[gi].shape[-1] >= min_size:
-                    self.v[gi] = torch.cat([self.v[gi][:,:,keep[0]:keep[1]] for keep in keeps], dim=-1)
+                    self.v[gi] = torch.cat([self.v[gi][:,:,:start], self.v[gi][:,:,end:]], -1)
 
     def remove_obsolete_features(self, max_size: int):
         # normalize with life duration
@@ -179,7 +163,7 @@ class KeyValueMemoryStore:
             usage = self.use_count / self.life_count
             return usage
 
-    def get_all_sliced(self, start: int, end: int, spans: List):
+    def get_all_sliced(self, start: int, end: int):
         # return k, sk, ek, usage in order, sliced by start and end
 
         if end == 0:
@@ -189,15 +173,10 @@ class KeyValueMemoryStore:
             ek = self.e[:,:,start:] if self.e is not None else None
             usage = self.get_usage()[:,:,start:]
         else:
-            # k = self.k[:,:,start:end]
-            # sk = self.s[:,:,start:end] if self.s is not None else None
-            # ek = self.e[:,:,start:end] if self.e is not None else None
-            # usage = self.get_usage()[:,:,start:end]
-
-            k = torch.cat([self.k[:,:,span[0]:span[1]] for span in spans], dim=-1)
-            sk = torch.cat([self.s[:,:,span[0]:span[1]] for span in spans], dim=-1) if self.s is not None else None
-            ek = torch.cat([self.e[:,:,span[0]:span[1]] for span in spans], dim=-1) if self.e is not None else None
-            usage = torch.cat([self.get_usage()[:,:,span[0]:span[1]] for span in spans], dim=-1)
+            k = self.k[:,:,start:end]
+            sk = self.s[:,:,start:end] if self.s is not None else None
+            ek = self.e[:,:,start:end] if self.e is not None else None
+            usage = self.get_usage()[:,:,start:end]
 
         return k, sk, ek, usage
 
@@ -233,4 +212,3 @@ class KeyValueMemoryStore:
     @property
     def selection(self):
         return self.e
-

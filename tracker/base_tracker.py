@@ -20,7 +20,7 @@ from torchvision.transforms import Resize
 
 
 class BaseTracker:
-    def __init__(self, xmem_checkpoint, device, sam_checkpoint, model_type) -> None:
+    def __init__(self, xmem_checkpoint, device, sam_model, model_type=None) -> None:
         """
         device: model device
         xmem_checkpoint: checkpoint of XMem model
@@ -43,9 +43,9 @@ class BaseTracker:
         self.mapper = MaskMapper()
         self.initialised = False
 
-        # SAM-based refinement
-        self.sam_model = BaseSegmenter(sam_checkpoint, model_type, device=device)
-        self.resizer = Resize([256, 256])
+        # # SAM-based refinement
+        # self.sam_model = sam_model
+        # self.resizer = Resize([256, 256])
 
     @torch.no_grad()
     def resize_mask(self, mask):
@@ -78,8 +78,7 @@ class BaseTracker:
         # prepare inputs
         frame_tensor = self.im_transform(frame).to(self.device)
         # track one frame
-        probs, logits = self.tracker.step(frame_tensor, mask, labels)   # logits 2 (bg fg) H W
-
+        probs, _ = self.tracker.step(frame_tensor, mask, labels)   # logits 2 (bg fg) H W
         # # refine
         # if first_frame_annotation is None:
         #     out_mask = self.sam_refinement(frame, logits[1], ti)    
@@ -92,7 +91,8 @@ class BaseTracker:
         painted_image = frame
         for obj in range(1, num_objs+1):
             painted_image = mask_painter(painted_image, (out_mask==obj).astype('uint8'), mask_color=obj+1)
-        return out_mask, probs, painted_image
+        
+        return out_mask, out_mask, painted_image
 
     @torch.no_grad()
     def sam_refinement(self, frame, logits, ti):
@@ -134,22 +134,52 @@ if __name__ == '__main__':
     # ----------------------------------------------------------
     # initalise tracker
     # ----------------------------------------------------------
-    device = 'cuda:0'
+    device = 'cuda:4'
     XMEM_checkpoint = '/ssd1/gaomingqi/checkpoints/XMem-s012.pth'
     SAM_checkpoint= '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
     model_type = 'vit_h'
-    tracker = BaseTracker(XMEM_checkpoint, device, SAM_checkpoint, model_type)
 
+    # sam_model = BaseSegmenter(SAM_checkpoint, model_type, device=device)
+    tracker = BaseTracker(XMEM_checkpoint, device, None, device)
 
-    # track anything given in the first frame annotation
+    # test for storage efficiency
+    frames = np.load('/ssd1/gaomingqi/efficiency/efficiency.npy')
+    first_frame_annotation = np.array(Image.open('/ssd1/gaomingqi/efficiency/template_mask.png'))
+
     for ti, frame in enumerate(frames):
+        print(ti)
+        if ti > 200:
+            break
         if ti == 0:
             mask, prob, painted_image = tracker.track(frame, first_frame_annotation)
         else:
             mask, prob, painted_image = tracker.track(frame)
         # save
         painted_image = Image.fromarray(painted_image)
-        painted_image.save(f'/ssd1/gaomingqi/results/TrackA/horsejump-high/{ti:05d}.png')
+        painted_image.save(f'/ssd1/gaomingqi/results/TrackA/gsw/{ti:05d}.png')
+
+    tracker.clear_memory()
+    for ti, frame in enumerate(frames):
+        print(ti)
+        # if ti > 200:
+        #     break
+        if ti == 0:
+            mask, prob, painted_image = tracker.track(frame, first_frame_annotation)
+        else:
+            mask, prob, painted_image = tracker.track(frame)
+        # save
+        painted_image = Image.fromarray(painted_image)
+        painted_image.save(f'/ssd1/gaomingqi/results/TrackA/gsw/{ti:05d}.png')
+
+    # # track anything given in the first frame annotation
+    # for ti, frame in enumerate(frames):
+    #     if ti == 0:
+    #         mask, prob, painted_image = tracker.track(frame, first_frame_annotation)
+    #     else:
+    #         mask, prob, painted_image = tracker.track(frame)
+    #     # save
+    #     painted_image = Image.fromarray(painted_image)
+    #     painted_image.save(f'/ssd1/gaomingqi/results/TrackA/horsejump-high/{ti:05d}.png')
 
     # # ----------------------------------------------------------
     # # another video
@@ -198,3 +228,6 @@ if __name__ == '__main__':
     #     prob = Image.fromarray((probs[1].cpu().numpy()*255).astype('uint8'))
 
     #     # prob.save(f'/ssd1/gaomingqi/failure/probs/{ti:05d}.png')
+
+
+
