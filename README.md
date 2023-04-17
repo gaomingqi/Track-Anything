@@ -9,7 +9,7 @@ https://user-images.githubusercontent.com/28050374/232070852-af2e85e5-a834-4bbc-
 
 ## Get Started
 
-This is Get Started.
+
 ## Acknowledgement
 
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). Thanks for the authors for their efforts.
