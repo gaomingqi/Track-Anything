@@ -5,7 +5,7 @@
 
 ## Demo
 
-https://user-images.githubusercontent.com/28050374/232312494-737066ea-93b2-4412-bdc3-30f8f0cf8647.mp4
+https://user-images.githubusercontent.com/28050374/232322963-140b44a1-0b65-409a-b3fa-ce9f780aa40e.MP4
 
 ## Get Started
 #### Linux
@@ -17,10 +17,10 @@ cd Track-Anything
 # Install dependencies:
 pip install -r requirements.txt
 
-# Run the Caption-Anything gradio demo.
+# Run the Track-Anything gradio demo.
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
 ```
 
 ## Acknowledgement
-s
+
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). Thanks for the authors for their efforts.
