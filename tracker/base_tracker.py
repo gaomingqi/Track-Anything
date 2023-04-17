@@ -20,7 +20,7 @@ from torchvision.transforms import Resize
 
 
 class BaseTracker:
-    def __init__(self, xmem_checkpoint, device, sam_model, model_type=None) -> None:
+    def __init__(self, xmem_checkpoint, device, sam_model=None, model_type=None) -> None:
         """
         device: model device
         xmem_checkpoint: checkpoint of XMem model
