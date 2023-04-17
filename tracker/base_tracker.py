@@ -87,7 +87,12 @@ class BaseTracker:
         # convert to mask
         out_mask = torch.argmax(probs, dim=0)
         out_mask = (out_mask.detach().cpu().numpy()).astype(np.uint8)
+
+        # detach to cpu
+        
         painted_image = mask_painter(frame, out_mask)
+
+        
         return out_mask, probs, painted_image
 
     @torch.no_grad()

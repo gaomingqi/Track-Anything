@@ -36,14 +36,14 @@ class TrackingAnything():
         mask, logit, painted_image = self.samcontroler.interact_loop(image, same_image_flag, points, labels, logits, multimask)
         return mask, logit, painted_image
 
-    def generator(self, images: list, mask:np.ndarray):
+    def generator(self, images: list, template_mask:np.ndarray):
         
         masks = []
         logits = []
         painted_images = []
         for i in range(len(images)):
             if i ==0:           
-                mask, logit, painted_image = self.xmem.track(images[i], mask)
+                mask, logit, painted_image = self.xmem.track(images[i], template_mask)
                 masks.append(mask)
                 logits.append(logit)
                 painted_images.append(painted_image)
