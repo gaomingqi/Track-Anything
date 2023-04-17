@@ -12,7 +12,7 @@ class TrackingAnything():
     def __init__(self, sam_checkpoint, xmem_checkpoint, args):
         self.args = args
         self.samcontroler = SamControler(sam_checkpoint, args.sam_model_type, args.device)
-        self.xmem = BaseTracker(xmem_checkpoint, device=args.device, )
+        self.xmem = BaseTracker(xmem_checkpoint, device=args.device, sam_checkpoint=sam_checkpoint, model_type=args.sam_model_type)
     
    
     def inference_step(self, first_flag: bool, interact_flag: bool, image: np.ndarray, 
