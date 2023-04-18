@@ -15,7 +15,7 @@ one gif/video
 
 ### Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
 
-one gif/video
+![image](./assets/inpainting.gif)
 
 ### Video Editing
 
