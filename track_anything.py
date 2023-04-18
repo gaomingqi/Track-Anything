@@ -62,6 +62,7 @@ def parse_augment():
     parser.add_argument('--sam_model_type', type=str, default="vit_h")
     parser.add_argument('--port', type=int, default=6080, help="only useful when running gradio applications")  
     parser.add_argument('--debug', action="store_true")
+    parser.add_argument('--mask_save', default=True)
     args = parser.parse_args()
 
     if args.debug:
