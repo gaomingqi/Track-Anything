@@ -1,11 +1,25 @@
 # Track-Anything
-**Track-Anything** is an Efficient Development Toolkit for Video Object Tracking and Segmentation, based on [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem). 
 
-![image](https://github.com/gaomingqi/Track-Anything/blob/master/overview.png)
+***Track-Anything*** is a flexible and interactive tool for video object tracking and segmentation. It is developed upon [Segment Anything](https://github.com/facebookresearch/segment-anything) and [XMem](https://github.com/hkchengrex/XMem), can specify anything to track and segment via user clicks only. During tracking, users can flexibly change the objects they wanna track or correct the region of interest if there are any ambiguities. These characteristics enable ***Track-Anything*** to be suitable for: 
+- Video object tracking and segmentation with shot changes. 
+- Data annnotation for video object tracking and segmentation.
+- Object-centric downstream video tasks, such as video inpainting and editing. 
 
 ## Demo
 
-https://user-images.githubusercontent.com/28050374/232322963-140b44a1-0b65-409a-b3fa-ce9f780aa40e.MP4
+one gif/video
+
+### Video Object Tracking and Segmentation with Shot Changes
+
+one gif/video
+
+### Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
+
+one gif/video
+
+### Video Editing
+
+one gif/video
 
 ## Get Started
 #### Linux
@@ -17,9 +31,12 @@ cd Track-Anything
 # Install dependencies: 
 pip install -r requirements.txt
 
-# Install dependencies if using inpainting: 
+# Install dependencies for inpainting: 
 pip install -U openmim
 mim install mmcv
+
+# Install dependencies for editing
+pip install madgrad 
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
