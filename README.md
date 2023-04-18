@@ -7,8 +7,7 @@
 
 ## Demo
 
-<video src="./assets/demo_version_1.MP4" controls="controls" poster="./assets/poster_demo_version_1.png"></video>
-
+https://user-images.githubusercontent.com/28050374/232842703-8395af24-b13e-4b8e-aafb-e94b61e6c449.MP4
 
 ### Video Object Tracking and Segmentation with Shot Changes
 
