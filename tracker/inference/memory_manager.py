@@ -182,7 +182,7 @@ class MemoryManager:
         if self.enable_long_term:
             # Do memory compressed if needed
             if self.work_mem.size >= self.max_work_elements:
-                print('remove memory')
+                # print('remove memory')
                 # Remove obsolete features if needed
                 if self.long_mem.size >= (self.max_long_elements-self.num_prototypes):
                     self.long_mem.remove_obsolete_features(self.max_long_elements-self.num_prototypes)
@@ -239,8 +239,8 @@ class MemoryManager:
 
         # add to long-term memory
         self.long_mem.add(prototype_key, prototype_value, prototype_shrinkage, selection=None, objects=None)
-        print(f'long memory size: {self.long_mem.size}')
-        print(f'work memory size: {self.work_mem.size}')
+        # print(f'long memory size: {self.long_mem.size}')
+        # print(f'work memory size: {self.work_mem.size}')
 
     def consolidation(self, candidate_key, candidate_shrinkage, candidate_selection, usage, candidate_value):
         # keys: 1*C*N
