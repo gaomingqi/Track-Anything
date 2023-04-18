@@ -7,7 +7,9 @@
 
 ## Demo
 
-one gif/video
+<video id="video" controls="" preload="none" poster="./assets/poster_demo_version_1.png">
+<source id="mp4" src="./assets/demo_version_1.MP4" type="video/mp4">
+</video>
 
 ### Video Object Tracking and Segmentation with Shot Changes
 
