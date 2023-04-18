@@ -11,7 +11,7 @@ https://user-images.githubusercontent.com/28050374/232842703-8395af24-b13e-4b8e-
 
 ### Video Object Tracking and Segmentation with Shot Changes
 
-one gif/video
+https://user-images.githubusercontent.com/30309970/232848349-f5e29e71-2ea4-4529-ac9a-94b9ca1e7055.mp4
 
 ### Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
 
