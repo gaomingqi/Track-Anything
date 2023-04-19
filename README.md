@@ -15,11 +15,7 @@ https://user-images.githubusercontent.com/30309970/232848349-f5e29e71-2ea4-4529-
 
 ### Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
 
-![image](./assets/inpainting.gif)
-
-### Video Editing
-
-one gif/video
+https://user-images.githubusercontent.com/28050374/232959816-07f2826f-d267-4dda-8ae5-a5132173b8f4.mp4
 
 ## Get Started
 #### Linux
