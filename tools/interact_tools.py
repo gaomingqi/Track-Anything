@@ -37,16 +37,16 @@ class SamControler():
         self.sam_controler = BaseSegmenter(SAM_checkpoint, model_type, device)
         
     
-    def seg_again(self, image: np.ndarray):
-        '''
-        it is used when interact in video
-        '''
-        self.sam_controler.reset_image()
-        self.sam_controler.set_image(image)
-        return 
+    # def seg_again(self, image: np.ndarray):
+    #     '''
+    #     it is used when interact in video
+    #     '''
+    #     self.sam_controler.reset_image()
+    #     self.sam_controler.set_image(image)
+    #     return 
     
     
-    def first_frame_click(self, image: np.ndarray, points:np.ndarray, labels: np.ndarray, multimask=True):
+    def first_frame_click(self, image: np.ndarray, points:np.ndarray, labels: np.ndarray, multimask=True,mask_color=3):
         '''
         it is used in first frame in video
         return: mask, logit, painted image(mask+point)
@@ -88,47 +88,47 @@ class SamControler():
         
         return mask, logit, painted_image
     
-    def interact_loop(self, image:np.ndarray, same: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
-        origal_image = self.sam_controler.orignal_image
-        if same: 
-            '''
-            true; loop in the same image
-            '''
-            prompts = {
-                'point_coords': points,
-                'point_labels': labels,
-                'mask_input': logits[None, :, :]
-            }
-            masks, scores, logits = self.sam_controler.predict(prompts, 'both', multimask)
-            mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
+    # def interact_loop(self, image:np.ndarray, same: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
+    #     origal_image = self.sam_controler.orignal_image
+    #     if same: 
+    #         '''
+    #         true; loop in the same image
+    #         '''
+    #         prompts = {
+    #             'point_coords': points,
+    #             'point_labels': labels,
+    #             'mask_input': logits[None, :, :]
+    #         }
+    #         masks, scores, logits = self.sam_controler.predict(prompts, 'both', multimask)
+    #         mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
             
-            painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
-            painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
-            painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
-            painted_image = Image.fromarray(painted_image)
+    #         painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
+    #         painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
+    #         painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
+    #         painted_image = Image.fromarray(painted_image)
 
-            return mask, logit, painted_image
-        else:
-            '''
-            loop in the different image, interact in the video 
-            '''
-            if image is None:
-                raise('Image error')
-            else:
-                self.seg_again(image)
-            prompts = {
-                'point_coords': points,
-                'point_labels': labels,
-            }
-            masks, scores, logits = self.sam_controler.predict(prompts, 'point', multimask)
-            mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
+    #         return mask, logit, painted_image
+    #     else:
+    #         '''
+    #         loop in the different image, interact in the video 
+    #         '''
+    #         if image is None:
+    #             raise('Image error')
+    #         else:
+    #             self.seg_again(image)
+    #         prompts = {
+    #             'point_coords': points,
+    #             'point_labels': labels,
+    #         }
+    #         masks, scores, logits = self.sam_controler.predict(prompts, 'point', multimask)
+    #         mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
             
-            painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
-            painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
-            painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
-            painted_image = Image.fromarray(painted_image)
+    #         painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
+    #         painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels>0)],axis = 1), point_color_ne, point_alpha, point_radius, contour_color, contour_width)
+    #         painted_image = point_painter(painted_image, np.squeeze(points[np.argwhere(labels<1)],axis = 1), point_color_ps, point_alpha, point_radius, contour_color, contour_width)
+    #         painted_image = Image.fromarray(painted_image)
 
-            return mask, logit, painted_image
+    #         return mask, logit, painted_image
         
     
 
@@ -226,31 +226,31 @@ class SamControler():
     
 
 
-if __name__ == "__main__":
-    points = np.array([[500, 375], [1125, 625]])
-    labels = np.array([1, 1])
-    image = cv2.imread('/hhd3/gaoshang/truck.jpg')
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+# if __name__ == "__main__":
+#     points = np.array([[500, 375], [1125, 625]])
+#     labels = np.array([1, 1])
+#     image = cv2.imread('/hhd3/gaoshang/truck.jpg')
+#     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    sam_controler = initialize()
-    mask, logit, painted_image_full = first_frame_click(sam_controler,image, points, labels, multimask=True)
-    painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
-    painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
-    cv2.imwrite('/hhd3/gaoshang/truck_point.jpg', painted_image)
-    cv2.imwrite('/hhd3/gaoshang/truck_change.jpg', image)
-    painted_image_full.save('/hhd3/gaoshang/truck_point_full.jpg')
+#     sam_controler = initialize()
+#     mask, logit, painted_image_full = first_frame_click(sam_controler,image, points, labels, multimask=True)
+#     painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
+#     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
+#     cv2.imwrite('/hhd3/gaoshang/truck_point.jpg', painted_image)
+#     cv2.imwrite('/hhd3/gaoshang/truck_change.jpg', image)
+#     painted_image_full.save('/hhd3/gaoshang/truck_point_full.jpg')
     
-    mask, logit, painted_image_full = interact_loop(sam_controler,image,True, points, np.array([1, 0]), logit, multimask=True)
-    painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
-    painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
-    cv2.imwrite('/hhd3/gaoshang/truck_same.jpg', painted_image)
-    painted_image_full.save('/hhd3/gaoshang/truck_same_full.jpg')
+#     mask, logit, painted_image_full = interact_loop(sam_controler,image,True, points, np.array([1, 0]), logit, multimask=True)
+#     painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
+#     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
+#     cv2.imwrite('/hhd3/gaoshang/truck_same.jpg', painted_image)
+#     painted_image_full.save('/hhd3/gaoshang/truck_same_full.jpg')
     
-    mask, logit, painted_image_full = interact_loop(sam_controler,image, False, points, labels, multimask=True)
-    painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
-    painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
-    cv2.imwrite('/hhd3/gaoshang/truck_diff.jpg', painted_image)
-    painted_image_full.save('/hhd3/gaoshang/truck_diff_full.jpg')
+#     mask, logit, painted_image_full = interact_loop(sam_controler,image, False, points, labels, multimask=True)
+#     painted_image = mask_painter2(image, mask.astype('uint8'), background_alpha=0.8)
+#     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
+#     cv2.imwrite('/hhd3/gaoshang/truck_diff.jpg', painted_image)
+#     painted_image_full.save('/hhd3/gaoshang/truck_diff_full.jpg')
     
     
     
