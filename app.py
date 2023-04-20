@@ -90,7 +90,7 @@ def get_frames_from_video(video_input, video_state):
     
     model.samcontroler.sam_controler.reset_image() 
     model.samcontroler.sam_controler.set_image(video_state["origin_images"][0])
-    return video_state, video_info, video_state["origin_images"][0], gr.update(visible=True, maximum=len(frames), value=1), gr.update(visible=True, maximum=len(frames), value=1), \
+    return video_state, video_info, video_state["origin_images"][0], gr.update(visible=True, maximum=len(frames), value=1), gr.update(visible=True, maximum=len(frames), value=len(frames)), \
                         gr.update(visible=True), gr.update(visible=True), \
                         gr.update(visible=True), gr.update(visible=True), \
                         gr.update(visible=True), gr.update(visible=True), \
@@ -153,9 +153,13 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
     interactive_state["multi_mask"]["masks"].append(mask)
     interactive_state["multi_mask"]["mask_names"].append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
     mask_dropdown.append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
+    select_frame = show_mask(video_state, interactive_state, mask_dropdown)
+    return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), select_frame, [[],[]]
 
-    return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown)
-
+def clear_click(video_state, click_state):
+    click_state = [[],[]]
+    template_frame = video_state["origin_images"][video_state["select_frame_number"]]
+    return template_frame, click_state
 
 def remove_multi_mask(interactive_state):
     interactive_state["multi_mask"]["mask_names"]= []
@@ -280,7 +284,7 @@ with gr.Blocks() as iface:
             "mask_names": [],
             "masks": []
         },
-        "track_end_num": None
+        "track_end_number": None
     }
     )
 
@@ -306,16 +310,16 @@ with gr.Blocks() as iface:
 
           
 
-            with gr.Row(scale=1):
+            with gr.Row():
                 # put the template frame under the radio button
-                with gr.Column(scale=0.4):
+                with gr.Column():
                     # extract frames
                     with gr.Column():
                         extract_frames_button = gr.Button(value="Get video info", interactive=True, variant="primary") 
 
                      # click points settins, negative or positive, mode continuous or single
                     with gr.Row():
-                        with gr.Row(scale=0.4):
+                        with gr.Row():
                             point_prompt = gr.Radio(
                                 choices=["Positive",  "Negative"],
                                 value="Positive",
@@ -328,14 +332,14 @@ with gr.Blocks() as iface:
                                 label="Clicking Mode",
                                 interactive=True,
                                 visible=False)
-                        with gr.Row(scale=0.5):
+                        with gr.Row():
                             clear_button_click = gr.Button(value="Clear Clicks", interactive=True, visible=False).style(height=160)
                             Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
                     template_frame = gr.Image(type="pil",interactive=True, elem_id="template_frame", visible=False).style(height=360)
                     image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Image Selection", visible=False)
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
             
-                with gr.Column(scale=0.4):
+                with gr.Column():
                     mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask_select", info=".", visible=False)
                     remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False)
                     video_output = gr.Video(autosize=True, visible=False).style(height=360)
@@ -371,7 +375,7 @@ with gr.Blocks() as iface:
     Add_mask_button.click(
         fn=add_multi_mask,
         inputs=[video_state, interactive_state, mask_dropdown],
-        outputs=[interactive_state, mask_dropdown]
+        outputs=[interactive_state, mask_dropdown, template_frame, click_state]
     )
 
     remove_mask_button.click(
@@ -414,9 +418,10 @@ with gr.Blocks() as iface:
             "mask_names": [],
             "masks": []
         },
-        "track_end_num": 0
+        "track_end_number": 0
         },
         [[],[]],
+        None,
         None,
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
@@ -428,6 +433,7 @@ with gr.Blocks() as iface:
             video_state,
             interactive_state,
             click_state,
+            video_output,
             template_frame,
             tracking_video_predict_button, image_selection_slider , track_pause_number_slider,point_prompt, click_mode, clear_button_click, 
             Add_mask_button, template_frame, tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button
@@ -437,11 +443,10 @@ with gr.Blocks() as iface:
 
     # points clear
     clear_button_click.click(
-       lambda: ([[],[]]),
-        [],
-        [click_state],
-        queue=False,
-        show_progress=False
+        fn = clear_click,
+        inputs = [video_state, click_state,],
+        outputs = [template_frame,click_state],
+
     ) 
 iface.queue(concurrency_count=1)
 iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
