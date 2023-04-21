@@ -1,12 +1,17 @@
 # Track-Anything
 
-[![](https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square)](https://huggingface.co/spaces/watchtowerss/Track-Anything) [![](https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square)](https://zhengfenglab.com/)
+[![](https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square)](https://huggingface.co/spaces/watchtowerss/Track-Anything) &nbsp; [![](https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square)](https://zhengfenglab.com/)
 
 
 ***Track-Anything*** is a flexible and interactive tool for video object tracking and segmentation. It is developed upon [Segment Anything](https://github.com/facebookresearch/segment-anything), can specify anything to track and segment via user clicks only. During tracking, users can flexibly change the objects they wanna track or correct the region of interest if there are any ambiguities. These characteristics enable ***Track-Anything*** to be suitable for: 
 - Video object tracking and segmentation with shot changes. 
 - Visualized development and data annnotation for video object tracking and segmentation.
 - Object-centric downstream video tasks, such as video inpainting and editing. 
+
+![avengers](./assets/avengers.gif)
+
+## :rocket: Updates
+- 2023/04/20: We deployed [[DEMO]](https://huggingface.co/spaces/watchtowerss/Track-Anything) on Hugging Face :hugs:! 
 
 ## Demo
 
