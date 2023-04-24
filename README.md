@@ -4,6 +4,8 @@
 <img src="./assets/track-anything-logo.jpg"/>
 </div>
 
+<br/>
+
 <div align=center>
 
 <a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything">
