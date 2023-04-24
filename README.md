@@ -1,4 +1,4 @@
-![](./assests/track-anything-logo.jpg)
+![](./assets/track-anything-logo.jpg)
 
 [![](https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square)](https://huggingface.co/spaces/watchtowerss/Track-Anything) &nbsp; [![](https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square)](https://zhengfenglab.com/)
 
