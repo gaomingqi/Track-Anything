@@ -12,9 +12,7 @@ class TrackingAnything():
     def __init__(self, sam_checkpoint, xmem_checkpoint, args):
         self.args = args
         self.samcontroler = SamControler(sam_checkpoint, args.sam_model_type, args.device)
-        self.xmem = BaseTracker(xmem_checkpoint, device=args.device)
-    
-   
+        self.xmem = BaseTracker(xmem_checkpoint, device=args.device) 
     # def inference_step(self, first_flag: bool, interact_flag: bool, image: np.ndarray, 
     #                    same_image_flag: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
     #     if first_flag:
@@ -63,7 +61,7 @@ def parse_augment():
     parser.add_argument('--sam_model_type', type=str, default="vit_h")
     parser.add_argument('--port', type=int, default=6080, help="only useful when running gradio applications")  
     parser.add_argument('--debug', action="store_true")
-    parser.add_argument('--mask_save', default=True)
+    parser.add_argument('--mask_save', default=False)
     args = parser.parse_args()
 
     if args.debug:

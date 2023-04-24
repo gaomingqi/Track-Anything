@@ -97,6 +97,8 @@ def get_frames_from_video(video_input, video_state):
                         gr.update(visible=True), gr.update(visible=True), \
                         gr.update(visible=True)
 
+def run_example(example):
+    return video_input
 # get the select frame from gradio slider
 def select_template(image_selection_slider, video_state, interactive_state):
 
@@ -109,11 +111,14 @@ def select_template(image_selection_slider, video_state, interactive_state):
     model.samcontroler.sam_controler.reset_image()
     model.samcontroler.sam_controler.set_image(video_state["origin_images"][image_selection_slider])
 
-    # # clear multi mask
-    # interactive_state["multi_mask"] = {"masks":[], "mask_names":[]}
+    # update the masks when select a new template frame
+    # if video_state["masks"][image_selection_slider] is not None:
+        # video_state["painted_images"][image_selection_slider] = mask_painter(video_state["origin_images"][image_selection_slider], video_state["masks"][image_selection_slider])
+
 
     return video_state["painted_images"][image_selection_slider], video_state, interactive_state
 
+# set the tracking end frame
 def get_end_number(track_pause_number_slider, interactive_state):
     interactive_state["track_end_number"] = track_pause_number_slider
     return interactive_state
@@ -446,7 +451,18 @@ with gr.Blocks() as iface:
         fn = clear_click,
         inputs = [video_state, click_state,],
         outputs = [template_frame,click_state],
-
+    )
+    # set example
+    gr.Markdown("##  Examples")
+    gr.Examples(
+        examples=[os.path.join(os.path.dirname(__file__), "./test_sample/", test_sample) for test_sample in ["test-sample8.mp4","test-sample4.mp4", \
+                                                                                                             "test-sample2.mp4","test-sample13.mp4"]],
+        fn=run_example,
+        inputs=[
+            video_input
+        ],
+        outputs=[video_input],
+        # cache_examples=True,
     ) 
 iface.queue(concurrency_count=1)
 iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
