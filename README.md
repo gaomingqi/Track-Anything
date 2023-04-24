@@ -44,6 +44,15 @@ pip install madgrad
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
 ```
 
+## Citation
+If you find this work useful for your research or applications, please cite using this BibTeX:
+```bibtex
+@misc{gao2023track,
+    title = {}
+
+}
+```
+
 ## Acknowledgements
 
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything), [XMem](https://github.com/hkchengrex/XMem), and [E2FGVI](https://github.com/MCG-NKU/E2FGVI). Thanks for the authors for their efforts.
