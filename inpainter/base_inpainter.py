@@ -67,6 +67,10 @@ class BaseInpainter:
             size = None
         else:
             size = (int(W*ratio), int(H*ratio))
+            if size[0] % 2 > 0:
+                size[0] += 1
+            if size[1] % 2 > 0:
+                size[1] += 1
         
         masks = np.expand_dims(masks, axis=3)    # expand to T, H, W, 1
         binary_masks = resize_masks(masks, size)
