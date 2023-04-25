@@ -22,7 +22,7 @@
 - Object-centric downstream video tasks, such as video inpainting and editing. 
 
 <div align=center>
-<img src="./assets/avengers.gif"/>
+<img src="./assets/avengers.gif" width="81%"/>
 </div>
 
 <!-- ![avengers]() -->
