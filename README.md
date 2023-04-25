@@ -28,6 +28,8 @@
 <!-- ![avengers]() -->
 
 ## :rocket: Updates
+- 2023/04/25:  We are delighted to introduce [Caption-Anything](https://github.com/ttengwang/Caption-Anything) :writing_hand:, a versatile image processing tool that combines the capabilities of Segment Anything, Visual Captioning, and ChatGPT. 
+
 - 2023/04/20: We deployed [[DEMO]](https://huggingface.co/spaces/watchtowerss/Track-Anything) on Hugging Face :hugs:! 
 
 ## Demo
@@ -55,13 +57,6 @@ cd Track-Anything
 
 # Install dependencies: 
 pip install -r requirements.txt
-
-# Install dependencies for inpainting: 
-pip install -U openmim
-mim install mmcv
-
-# Install dependencies for editing
-pip install madgrad 
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0 --sam_model_type vit_h --port 12212
