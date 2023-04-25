@@ -7,7 +7,7 @@ import yaml
 import cv2
 import importlib
 import numpy as np
-from util.tensor_util import resize_frames, resize_masks
+from inpainter.util.tensor_util import resize_frames, resize_masks
 
 
 class BaseInpainter:
@@ -15,7 +15,7 @@ class BaseInpainter:
         """
         E2FGVI_checkpoint: checkpoint of inpainter (version hq, with multi-resolution support)
         """
-        net = importlib.import_module('model.e2fgvi_hq')
+        net = importlib.import_module('inpainter.model.e2fgvi_hq')
         self.model = net.InpaintGenerator().to(device)
         self.model.load_state_dict(torch.load(E2FGVI_checkpoint, map_location=device))
         self.model.eval()

@@ -1,18 +1,18 @@
-import sys
-sys.path.append("/hhd3/gaoshang/Track-Anything/tracker")
 import PIL 
 from tools.interact_tools import SamControler
 from tracker.base_tracker import BaseTracker
+from inpainter.base_inpainter import BaseInpainter
 import numpy as np
 import argparse
 
 
 
 class TrackingAnything():
-    def __init__(self, sam_checkpoint, xmem_checkpoint, args):
+    def __init__(self, sam_checkpoint, xmem_checkpoint, e2fgvi_checkpoint, args):
         self.args = args
         self.samcontroler = SamControler(sam_checkpoint, args.sam_model_type, args.device)
-        self.xmem = BaseTracker(xmem_checkpoint, device=args.device) 
+        self.xmem = BaseTracker(xmem_checkpoint, device=args.device)
+        self.baseinpainter = BaseInpainter(e2fgvi_checkpoint, args.device) 
     # def inference_step(self, first_flag: bool, interact_flag: bool, image: np.ndarray, 
     #                    same_image_flag: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
     #     if first_flag:

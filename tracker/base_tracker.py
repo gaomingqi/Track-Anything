@@ -13,7 +13,7 @@ from util.mask_mapper import MaskMapper
 from torchvision import transforms
 from util.range_transform import im_normalization
 import sys
-sys.path.insert(0, sys.path[0]+"/../")
+# sys.path.insert(0, sys.path[0]+"/../")
 from tools.painter import mask_painter
 from tools.base_segmenter import BaseSegmenter
 from torchvision.transforms import Resize
