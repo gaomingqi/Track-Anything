@@ -101,7 +101,7 @@ class BaseTracker:
                 continue
             painted_image = mask_painter(painted_image, (final_mask==obj).astype('uint8'), mask_color=obj+1)
 
-        print(f'max memory allocated: {torch.cuda.max_memory_allocated()/(2**20)} MB')
+        # print(f'max memory allocated: {torch.cuda.max_memory_allocated()/(2**20)} MB')
 
         return final_mask, final_mask, painted_image
 
