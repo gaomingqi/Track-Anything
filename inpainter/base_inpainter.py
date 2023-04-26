@@ -64,6 +64,7 @@ class BaseInpainter:
         masks = np.stack([cv2.dilate(mask, kernel) for mask in masks], 0)
 
         T, H, W = masks.shape
+        masks = np.expand_dims(masks, axis=3)    # expand to T, H, W, 1
         # size: (w, h)
         if ratio == 1:
             size = None
@@ -74,10 +75,8 @@ class BaseInpainter:
             if min(size) < 50:
                 ratio = 50. / min(H, W)
                 size = [int(W*ratio), int(H*ratio)]
-        
-        masks = np.expand_dims(masks, axis=3)    # expand to T, H, W, 1
-        binary_masks = resize_masks(masks, tuple(size))
-        frames = resize_frames(frames, tuple(size))          # T, H, W, 3
+            binary_masks = resize_masks(masks, tuple(size))
+            frames = resize_frames(frames, tuple(size))          # T, H, W, 3
         # frames and binary_masks are numpy arrays
 
         h, w = frames.shape[1:3]

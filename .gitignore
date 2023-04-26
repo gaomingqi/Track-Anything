@@ -9,3 +9,4 @@ debug_images/
 *.npy
 images/
 test_sample/
+doc/
