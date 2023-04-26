@@ -68,6 +68,7 @@ class BaseInpainter:
         # size: (w, h)
         if ratio == 1:
             size = None
+            binary_masks = masks
         else:
             size = [int(W*ratio), int(H*ratio)]
             size = [si+1 if si%2>0 else si for si in size]  # only consider even values
@@ -78,7 +79,6 @@ class BaseInpainter:
             binary_masks = resize_masks(masks, tuple(size))
             frames = resize_frames(frames, tuple(size))          # T, H, W, 3
         # frames and binary_masks are numpy arrays
-
         h, w = frames.shape[1:3]
         video_length = T
 
