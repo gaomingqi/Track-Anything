@@ -15,5 +15,4 @@ onnx
 metaseg==0.6.1
 pyyaml
 av
-mmcv-full
-mmengine
+openmim

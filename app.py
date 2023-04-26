@@ -14,6 +14,10 @@ import json
 import torchvision
 import torch 
 from tools.painter import mask_painter
+try: 
+    from mmcv.cnn import ConvModule
+except:
+    os.system("mim install mmcv")
 
 # download checkpoints
 def download_checkpoint(url, folder, filename):
@@ -365,7 +369,7 @@ with gr.Blocks() as iface:
                 video_input = gr.Video(autosize=True)
                 with gr.Column():
                     video_info = gr.Textbox()
-                    video_info = gr.Textbox(value="If you want to use the inpaint function, it is best to download and use a machine with more VRAM locally. \
+                    resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to download and use a machine with more VRAM locally. \
                                             Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.")
                     resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True)
           
