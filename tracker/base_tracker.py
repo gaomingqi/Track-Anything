@@ -126,6 +126,7 @@ class BaseTracker:
     def clear_memory(self):
         self.tracker.clear_memory()
         self.mapper.clear_labels()
+        torch.cuda.empty_cache()
 
 
 ##  how to use:
