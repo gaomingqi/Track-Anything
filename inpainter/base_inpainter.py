@@ -75,8 +75,8 @@ class BaseInpainter:
                 size[1] += 1
         
         masks = np.expand_dims(masks, axis=3)    # expand to T, H, W, 1
-        binary_masks = resize_masks(masks, size)
-        frames = resize_frames(frames, size)          # T, H, W, 3
+        binary_masks = resize_masks(masks, tuple(size))
+        frames = resize_frames(frames, tuple(size))          # T, H, W, 3
         # frames and binary_masks are numpy arrays
 
         h, w = frames.shape[1:3]
