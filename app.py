@@ -364,7 +364,7 @@ folder ="./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
-args.port = 12211
+args.port = 12212
 args.device = "cuda:2"
 # args.mask_save = True
 
@@ -417,7 +417,7 @@ with gr.Blocks() as iface:
             with gr.Row(scale=0.4):
                 video_input = gr.Video(autosize=True)
                 with gr.Column():
-                    video_info = gr.Textbox()
+                    video_info = gr.Textbox(label="Video Info")
                     resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
                                             Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.", label="Tips for running this demo.")
                     resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True)
@@ -453,7 +453,7 @@ with gr.Blocks() as iface:
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
             
                 with gr.Column():
-                    mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask_select", info=".", visible=False)
+                    mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
                     remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False)
                     video_output = gr.Video(autosize=True, visible=False).style(height=360)
                     with gr.Row():
