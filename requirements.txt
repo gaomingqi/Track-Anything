@@ -10,8 +10,6 @@ gradio==3.25.0
 opencv-python
 pycocotools
 matplotlib
-onnxruntime
-onnx
 pyyaml
 av
 openmim
