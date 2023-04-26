@@ -13,3 +13,4 @@ matplotlib
 pyyaml
 av
 openmim
+tqdm

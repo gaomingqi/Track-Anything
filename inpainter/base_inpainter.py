@@ -7,6 +7,8 @@ import yaml
 import cv2
 import importlib
 import numpy as np
+from tqdm import tqdm
+
 from inpainter.util.tensor_util import resize_frames, resize_masks
 
 
@@ -66,7 +68,7 @@ class BaseInpainter:
         if ratio == 1:
             size = None
         else:
-            size = (int(W*ratio), int(H*ratio))
+            size = [int(W*ratio), int(H*ratio)]
             if size[0] % 2 > 0:
                 size[0] += 1
             if size[1] % 2 > 0:
@@ -87,7 +89,7 @@ class BaseInpainter:
         imgs, masks = imgs.to(self.device), masks.to(self.device)
         comp_frames = [None] * video_length
 
-        for f in range(0, video_length, self.neighbor_stride):
+        for f in tqdm(range(0, video_length, self.neighbor_stride), desc='Inpainting image'):
             neighbor_ids = [
                 i for i in range(max(0, f - self.neighbor_stride),
                                 min(video_length, f + self.neighbor_stride + 1))
