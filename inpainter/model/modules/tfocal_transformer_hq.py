@@ -128,8 +128,10 @@ def window_partition(x, window_size):
         windows: (B*num_windows, T*window_size*window_size, C)
     """
     B, T, H, W, C = x.shape
+
     x = x.view(B, T, H // window_size[0], window_size[0], W // window_size[1],
                window_size[1], C)
+
     windows = x.permute(0, 2, 4, 1, 3, 5, 6).contiguous().view(
         -1, T * window_size[0] * window_size[1], C)
     return windows
