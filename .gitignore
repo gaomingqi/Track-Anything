@@ -7,3 +7,5 @@ debug_images/
 *.png
 *.jpg
 *.npy
+images/
+test_sample/
