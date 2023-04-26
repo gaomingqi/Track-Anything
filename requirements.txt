@@ -12,7 +12,6 @@ pycocotools
 matplotlib
 onnxruntime
 onnx
-metaseg==0.6.1
 pyyaml
 av
 openmim
