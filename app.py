@@ -13,6 +13,8 @@ import requests
 import json
 import torchvision
 import torch 
+from tools.interact_tools import SamControler
+from tracker.base_tracker import BaseTracker
 from tools.painter import mask_painter
 try: 
     from mmcv.cnn import ConvModule
@@ -204,6 +206,7 @@ def show_mask(video_state, interactive_state, mask_dropdown):
 
 # tracking vos
 def vos_tracking_video(video_state, interactive_state, mask_dropdown):
+
     model.xmem.clear_memory()
     if interactive_state["track_end_number"]:
         following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]]
@@ -223,6 +226,8 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         template_mask = video_state["masks"][video_state["select_frame_number"]]
     fps = video_state["fps"]
     masks, logits, painted_images = model.generator(images=following_frames, template_mask=template_mask)
+    # clear GPU memory
+    model.xmem.clear_memory()
 
     if interactive_state["track_end_number"]: 
         video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = masks
@@ -262,6 +267,7 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
 
 # inpaint 
 def inpaint_video(video_state, interactive_state, mask_dropdown):
+
     frames = np.asarray(video_state["origin_images"])
     fps = video_state["fps"]
     inpaint_masks = np.asarray(video_state["masks"])
@@ -342,6 +348,12 @@ e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, 
 # initialize sam, xmem, e2fgvi models
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, e2fgvi_checkpoint,args)
 
+
+title = """<p><h1 align="center">Track-Anything</h1></p>
+    """
+description = """<p>Gradio demo for Track Anything, a flexible and interactive tool for video object tracking, segmentation, and inpainting. I To use it, simply upload your video, or click one of the examples to load them. Code: <a href="https://github.com/gaomingqi/Track-Anything">https://github.com/gaomingqi/Track-Anything</a> <a href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true"><img style="display: inline; margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3gLdBN6" alt="Duplicate Space" /></a></p>"""
+
+
 with gr.Blocks() as iface:
     """
         state for 
@@ -373,7 +385,8 @@ with gr.Blocks() as iface:
         "fps": 30
         }
     )
-
+    gr.Markdown(title)
+    gr.Markdown(description)
     with gr.Row():
 
         # for user video input
