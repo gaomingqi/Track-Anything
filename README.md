@@ -49,8 +49,8 @@ https://user-images.githubusercontent.com/30309970/232848349-f5e29e71-2ea4-4529-
 https://user-images.githubusercontent.com/28050374/232959816-07f2826f-d267-4dda-8ae5-a5132173b8f4.mp4
 
 ## Get Started
-#### Linux
-```bash
+#### Linux & Windows
+```shell
 # Clone the repository:
 git clone https://github.com/gaomingqi/Track-Anything.git
 cd Track-Anything
@@ -60,7 +60,9 @@ pip install -r requirements.txt
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0
+# python app.py --device cuda:0 --sam_model_type vit_b # for lower memory usage
 ```
+
 
 ## Citation
 If you find this work useful for your research or applications, please cite using this BibTeX:
