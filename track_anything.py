@@ -6,9 +6,22 @@ from tracker.base_tracker import BaseTracker
 from inpainter.base_inpainter import BaseInpainter
 import numpy as np
 import argparse
+import cv2
 
+def read_image_from_userfolder(image_path):
+    # if type:
+    image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+    # else:
+        # image = cv2.cvtColor(cv2.imread("/tmp/{}/paintedimages/{}/{:08d}.png".format(username, video_state["video_name"], index+ ".png")), cv2.COLOR_BGR2RGB)
+    return image
 
-
+def save_image_to_userfolder(video_state, index, image, type:bool):
+    if type:
+        image_path = "/tmp/{}/originimages/{}/{:08d}.png".format(video_state["user_name"], video_state["video_name"], index)
+    else:
+        image_path = "/tmp/{}/paintedimages/{}/{:08d}.png".format(video_state["user_name"], video_state["video_name"], index)
+    cv2.imwrite(image_path, image)
+    return image_path
 class TrackingAnything():
     def __init__(self, sam_checkpoint, xmem_checkpoint, e2fgvi_checkpoint, args):
         self.args = args
@@ -39,23 +52,25 @@ class TrackingAnything():
     #     mask, logit, painted_image = self.samcontroler.interact_loop(image, same_image_flag, points, labels, logits, multimask)
     #     return mask, logit, painted_image
 
-    def generator(self, images: list, template_mask:np.ndarray):
+    def generator(self, images: list, template_mask:np.ndarray, video_state:dict):
         
         masks = []
         logits = []
         painted_images = []
         for i in tqdm(range(len(images)), desc="Tracking image"):
             if i ==0:           
-                mask, logit, painted_image = self.xmem.track(images[i], template_mask)
+                mask, logit, painted_image = self.xmem.track(read_image_from_userfolder(images[i]), template_mask)
                 masks.append(mask)
                 logits.append(logit)
-                painted_images.append(painted_image)
+                # painted_images.append(painted_image)
+                painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
                 
             else:
-                mask, logit, painted_image = self.xmem.track(images[i])
+                mask, logit, painted_image = self.xmem.track(read_image_from_userfolder(images[i]))
                 masks.append(mask)
                 logits.append(logit)
-                painted_images.append(painted_image)
+                # painted_images.append(painted_image)
+                painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
         return masks, logits, painted_images
     
         

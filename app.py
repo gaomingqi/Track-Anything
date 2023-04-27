@@ -8,7 +8,7 @@ import sys
 sys.path.append(sys.path[0]+"/tracker")
 sys.path.append(sys.path[0]+"/tracker/model")
 from track_anything import TrackingAnything
-from track_anything import parse_augment
+from track_anything import parse_augment, save_image_to_userfolder, read_image_from_userfolder
 import requests
 import json
 import torchvision
@@ -70,6 +70,7 @@ def get_prompt(click_state, click_input):
     return prompt
 
 
+
 # extract frames from upload video
 def get_frames_from_video(video_input, video_state):
     """
@@ -80,50 +81,72 @@ def get_frames_from_video(video_input, video_state):
         [[0:nearest_frame], [nearest_frame:], nearest_frame]
     """
     video_path = video_input
-    frames = []
+    frames = [] # save image path
     user_name = time.time()
+    video_state["video_name"] = os.path.split(video_path)[-1]
+    video_state["user_name"] = user_name
+
+    os.makedirs(os.path.join("/tmp/{}/originimages/{}".format(video_state["user_name"], video_state["video_name"])), exist_ok=True)
+    os.makedirs(os.path.join("/tmp/{}/paintedimages/{}".format(video_state["user_name"], video_state["video_name"])), exist_ok=True)
     operation_log = [("",""),("Upload video already. Try click the image for adding targets to track and inpaint.","Normal")]
     try:
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
+        if not cap.isOpened():
+            operation_log = [("No frames extracted, please input video file with '.mp4.' '.mov'.", "Error")]
+            print("No frames extracted, please input video file with '.mp4.' '.mov'.")
+            return None, None, None, None, \
+                    None, None, None, None, \
+                    None, None, None, None, \
+                    None, None, gr.update(visible=True, value=operation_log)
+        image_index = 0
         while cap.isOpened():
             ret, frame = cap.read()
             if ret == True:
                 current_memory_usage = psutil.virtual_memory().percent
-                frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+                # try solve memory usage problem, save image to disk instead of memory
+                frames.append(save_image_to_userfolder(video_state, image_index, frame, True))
+                image_index +=1
+                # frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 if current_memory_usage > 90:
                     operation_log = [("Memory usage is too high (>90%). Stop the video extraction. Please reduce the video resolution or frame rate.", "Error")]
                     print("Memory usage is too high (>90%). Please reduce the video resolution or frame rate.")
                     break
             else:
                 break
+
     except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
+    # except:
+        operation_log = [("read_frame_source:{} error. {}\n".format(video_path, str(e)), "Error")]
         print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
-    image_size = (frames[0].shape[0],frames[0].shape[1]) 
+        return None, None, None, None, \
+                None, None, None, None, \
+                None, None, None, None, \
+                None, None, gr.update(visible=True, value=operation_log)
+    first_image = read_image_from_userfolder(frames[0])
+    image_size = (first_image.shape[0], first_image.shape[1]) 
     # initialize video_state
     video_state = {
         "user_name": user_name,
         "video_name": os.path.split(video_path)[-1],
         "origin_images": frames,
         "painted_images": frames.copy(),
-        "masks": [np.zeros((frames[0].shape[0],frames[0].shape[1]), np.uint8)]*len(frames),
+        "masks": [np.zeros((image_size[0], image_size[1]), np.uint8)]*len(frames),
         "logits": [None]*len(frames),
         "select_frame_number": 0,
         "fps": fps
         }
     video_info = "Video Name: {}, FPS: {}, Total Frames: {}, Image Size:{}".format(video_state["video_name"], video_state["fps"], len(frames), image_size)
     model.samcontroler.sam_controler.reset_image() 
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][0])
-    return video_state, video_info, video_state["origin_images"][0], gr.update(visible=True, maximum=len(frames), value=1), gr.update(visible=True, maximum=len(frames), value=len(frames)), \
-                        gr.update(visible=True),\
-                        gr.update(visible=True), gr.update(visible=True), \
-                        gr.update(visible=True), gr.update(visible=True), \
-                        gr.update(visible=True), gr.update(visible=True), \
-                        gr.update(visible=True), gr.update(visible=True), \
-                        gr.update(visible=True, value=operation_log)
+    model.samcontroler.sam_controler.set_image(first_image)
+    return video_state, video_info, first_image, gr.update(visible=True, maximum=len(frames), value=1), \
+            gr.update(visible=True, maximum=len(frames), value=len(frames)), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
+            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
+            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), 
 
 def run_example(example):
-    return video_input
+    return example 
 # get the select frame from gradio slider
 def select_template(image_selection_slider, video_state, interactive_state):
 
@@ -134,21 +157,22 @@ def select_template(image_selection_slider, video_state, interactive_state):
     # once select a new template frame, set the image in sam
 
     model.samcontroler.sam_controler.reset_image()
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][image_selection_slider])
+    model.samcontroler.sam_controler.set_image(read_image_from_userfolder(video_state["origin_images"][image_selection_slider]))
 
     # update the masks when select a new template frame
     # if video_state["masks"][image_selection_slider] is not None:
         # video_state["painted_images"][image_selection_slider] = mask_painter(video_state["origin_images"][image_selection_slider], video_state["masks"][image_selection_slider])
     operation_log = [("",""), ("Select frame {}. Try click image and add mask for tracking.".format(image_selection_slider),"Normal")]
 
-    return video_state["painted_images"][image_selection_slider], video_state, interactive_state, operation_log
+    return read_image_from_userfolder(video_state["painted_images"][image_selection_slider]), video_state, interactive_state, operation_log
 
 # set the tracking end frame
 def get_end_number(track_pause_number_slider, video_state, interactive_state):
+    track_pause_number_slider -= 1
     interactive_state["track_end_number"] = track_pause_number_slider
     operation_log = [("",""),("Set the tracking finish at frame {}".format(track_pause_number_slider),"Normal")]
 
-    return video_state["painted_images"][track_pause_number_slider],interactive_state, operation_log
+    return read_image_from_userfolder(video_state["painted_images"][track_pause_number_slider]),interactive_state, operation_log
 
 def get_resize_ratio(resize_ratio_slider, interactive_state):
     interactive_state["resize_ratio"] = resize_ratio_slider
@@ -172,18 +196,18 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt:gr
     
     # prompt for sam model
     model.samcontroler.sam_controler.reset_image()
-    model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])
+    model.samcontroler.sam_controler.set_image(read_image_from_userfolder(video_state["origin_images"][video_state["select_frame_number"]]))
     prompt = get_prompt(click_state=click_state, click_input=coordinate)
 
     mask, logit, painted_image = model.first_frame_click( 
-                                                      image=video_state["origin_images"][video_state["select_frame_number"]], 
+                                                      image=read_image_from_userfolder(video_state["origin_images"][video_state["select_frame_number"]]), 
                                                       points=np.array(prompt["input_point"]),
                                                       labels=np.array(prompt["input_label"]),
                                                       multimask=prompt["multimask_output"],
                                                       )
     video_state["masks"][video_state["select_frame_number"]] = mask
     video_state["logits"][video_state["select_frame_number"]] = logit
-    video_state["painted_images"][video_state["select_frame_number"]] = painted_image
+    video_state["painted_images"][video_state["select_frame_number"]] = save_image_to_userfolder(video_state, index=video_state["select_frame_number"], image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB),type=False)
 
     operation_log = [("",""), ("Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment","Normal")]
     return painted_image, video_state, interactive_state, operation_log
@@ -203,7 +227,7 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
 
 def clear_click(video_state, click_state):
     click_state = [[],[]]
-    template_frame = video_state["origin_images"][video_state["select_frame_number"]]
+    template_frame = read_image_from_userfolder(video_state["origin_images"][video_state["select_frame_number"]])
     operation_log = [("",""), ("Clear points history and refresh the image.","Normal")]
     return template_frame, click_state, operation_log
 
@@ -216,7 +240,7 @@ def remove_multi_mask(interactive_state, mask_dropdown):
 
 def show_mask(video_state, interactive_state, mask_dropdown):
     mask_dropdown.sort()
-    select_frame = video_state["origin_images"][video_state["select_frame_number"]]
+    select_frame = read_image_from_userfolder(video_state["origin_images"][video_state["select_frame_number"]])
     
     for i in range(len(mask_dropdown)):
         mask_number = int(mask_dropdown[i].split("_")[1]) - 1
@@ -253,18 +277,18 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         template_mask[0][0]=1
         operation_log = [("Error! Please add at least one mask to track by clicking the left image.","Error"), ("","")]
         # return video_output, video_state, interactive_state, operation_error
-    masks, logits, painted_images = model.generator(images=following_frames, template_mask=template_mask)
+    masks, logits, painted_images_path = model.generator(images=following_frames, template_mask=template_mask, video_state=video_state)
     # clear GPU memory
     model.xmem.clear_memory()
 
     if interactive_state["track_end_number"]: 
         video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = masks
         video_state["logits"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = logits
-        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = painted_images
+        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = painted_images_path
     else:
         video_state["masks"][video_state["select_frame_number"]:] = masks
         video_state["logits"][video_state["select_frame_number"]:] = logits
-        video_state["painted_images"][video_state["select_frame_number"]:] = painted_images
+        video_state["painted_images"][video_state["select_frame_number"]:] = painted_images_path
 
     video_output = generate_video_from_frames(video_state["painted_images"], output_path="./result/track/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
     interactive_state["inference_times"] += 1
@@ -283,20 +307,16 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         for mask in video_state["masks"]:
             np.save(os.path.join('./result/mask/{}'.format(video_state["video_name"].split('.')[0]), '{:05d}.npy'.format(i)), mask)
             i+=1
-        # save_mask(video_state["masks"], video_state["video_name"])
     #### shanggao code for mask save
     return video_output, video_state, interactive_state, operation_log
 
-# extracting masks from mask_dropdown
-# def extract_sole_mask(video_state, mask_dropdown):
-#     combined_masks = 
-#     unique_masks = np.unique(combined_masks)
-#     return 0 
+
 
 # inpaint 
 def inpaint_video(video_state, interactive_state, mask_dropdown):
     operation_log = [("",""), ("Removed the selected masks.","Normal")]
 
+    # solve memory
     frames = np.asarray(video_state["origin_images"])
     fps = video_state["fps"]
     inpaint_masks = np.asarray(video_state["masks"])
@@ -325,7 +345,7 @@ def inpaint_video(video_state, interactive_state, mask_dropdown):
 
 
 # generate video after vos inference
-def generate_video_from_frames(frames, output_path, fps=30):
+def generate_video_from_frames(frames_path, output_path, fps=30):
     """
     Generates a video from a list of frames.
     
@@ -342,6 +362,9 @@ def generate_video_from_frames(frames, output_path, fps=30):
     #     video.write(frame)
     
     # video.release()
+    frames = []
+    for file in frames_path:
+        frames.append(read_image_from_userfolder(file))
     frames = torch.from_numpy(np.asarray(frames))
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
@@ -375,8 +398,8 @@ folder ="./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
-# args.port = 12212
-# args.device = "cuda:1"
+args.port = 12211
+args.device = "cuda:1"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
@@ -459,7 +482,7 @@ with gr.Blocks() as iface:
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
             
                 with gr.Column():
-                    run_status = gr.HighlightedText(value=[("Text","Error"),("to be","Label 2"),("highlighted","Label 3")], visible=False)
+                    run_status = gr.HighlightedText(value=[("Text","Error"),("to be","Label 2"),("highlighted","Label 3")], visible=True)
                     mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
                     video_output = gr.Video(autosize=True, visible=False).style(height=360)
                     with gr.Row():
@@ -472,9 +495,10 @@ with gr.Blocks() as iface:
         inputs=[
             video_input, video_state
         ],
-        outputs=[video_state, video_info, template_frame,
-                 image_selection_slider, track_pause_number_slider,point_prompt, clear_button_click, Add_mask_button, template_frame,
-                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, inpaint_video_predict_button, run_status]
+        outputs=[video_state, video_info, template_frame, image_selection_slider, 
+                 track_pause_number_slider,point_prompt, clear_button_click, Add_mask_button, 
+                 template_frame, tracking_video_predict_button, video_output, mask_dropdown, 
+                 remove_mask_button, inpaint_video_predict_button, run_status]
     )   
 
     # second step: select images from slider
