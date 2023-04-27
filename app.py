@@ -13,10 +13,9 @@ import requests
 import json
 import torchvision
 import torch 
-from tools.interact_tools import SamControler
-from tracker.base_tracker import BaseTracker
 from tools.painter import mask_painter
 import psutil
+import time
 try: 
     from mmcv.cnn import ConvModule
 except:
@@ -82,7 +81,7 @@ def get_frames_from_video(video_input, video_state):
     """
     video_path = video_input
     frames = []
-
+    user_name = time.time()
     operation_log = [("",""),("Upload video already. Try click the image for adding targets to track and inpaint.","Normal")]
     try:
         cap = cv2.VideoCapture(video_path)
@@ -103,6 +102,7 @@ def get_frames_from_video(video_input, video_state):
     image_size = (frames[0].shape[0],frames[0].shape[1]) 
     # initialize video_state
     video_state = {
+        "user_name": user_name,
         "video_name": os.path.split(video_path)[-1],
         "origin_images": frames,
         "painted_images": frames.copy(),
@@ -375,8 +375,8 @@ folder ="./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
-# args.port = 12214
-# args.device = "cuda:2"
+# args.port = 12212
+# args.device = "cuda:1"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
@@ -409,6 +409,7 @@ with gr.Blocks() as iface:
 
     video_state = gr.State(
         {
+        "user_name": "",
         "video_name": "",
         "origin_images": None,
         "painted_images": None,
@@ -532,6 +533,8 @@ with gr.Blocks() as iface:
     video_input.clear(
         lambda: (
         {
+        "user_name": "",
+        "video_name": "",
         "origin_images": None,
         "painted_images": None,
         "masks": None,
@@ -593,5 +596,5 @@ with gr.Blocks() as iface:
         # cache_examples=True,
     ) 
 iface.queue(concurrency_count=1)
-# iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
-iface.launch(debug=True, enable_queue=True)
+iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
+# iface.launch(debug=True, enable_queue=True)
