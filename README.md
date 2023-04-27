@@ -33,6 +33,8 @@
 - 2023/04/20: We deployed [[DEMO]](https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=trueg) on Hugging Face :hugs:!
 ## Demo
 
+- 2023/04/14: We made Track-Anything public!
+
 https://user-images.githubusercontent.com/28050374/232842703-8395af24-b13e-4b8e-aafb-e94b61e6c449.MP4
 
 ### Multiple Object Tracking and Segmentation (with [XMem](https://github.com/hkchengrex/XMem))
