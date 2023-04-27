@@ -36,7 +36,7 @@
 
 ## Demo
 
-https://user-images.githubusercontent.com/28050374/232842703-8395af24-b13e-4b8e-aafb-e94b61e6c449.MP4
+https://user-images.githubusercontent.com/30309970/234902447-a4c59718-fcfe-443a-bd18-2f3f775cfc13.mp4
 
 ### Multiple Object Tracking and Segmentation (with [XMem](https://github.com/hkchengrex/XMem))
 
