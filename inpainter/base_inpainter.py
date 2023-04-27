@@ -1,14 +1,13 @@
 import os
 import glob
 from PIL import Image
-
 import torch
 import yaml
 import cv2
 import importlib
 import numpy as np
 from tqdm import tqdm
-
+from track_anything import read_image_from_userfolder
 from inpainter.util.tensor_util import resize_frames, resize_masks
 
 
@@ -46,7 +45,7 @@ class BaseInpainter:
                     ref_index.append(i)
         return ref_index
 
-    def inpaint(self, frames, masks, dilate_radius=15, ratio=1):
+    def inpaint(self, frames_path, masks, dilate_radius=15, ratio=1):
         """
         frames: numpy array, T, H, W, 3
         masks: numpy array, T, H, W
@@ -56,6 +55,11 @@ class BaseInpainter:
         Output:
         inpainted_frames: numpy array, T, H, W, 3
         """
+        frames = []
+        for file in frames_path:
+            frames.append(read_image_from_userfolder(file))
+        frames = np.asarray(frames)
+
         assert frames.shape[:3] == masks.shape, 'different size between frames and masks'
         assert ratio > 0 and ratio <= 1, 'ratio must in (0, 1]'
         masks = masks.copy()
