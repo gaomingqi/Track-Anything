@@ -339,8 +339,8 @@ def inpaint_video(video_state, interactive_state, mask_dropdown):
     except:
         operation_log = [("Error! You are trying to inpaint without masks input. Please track the selected mask first, and then press inpaint. If VRAM exceeded, please use the resize ratio to scaling down the image size.","Error"), ("","")]
         inpainted_frames = video_state["origin_images"]
-    video_output = generate_video_from_frames(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
-
+        video_output = generate_video_from_frames(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
+    video_output = generate_video_from_paintedframes(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps)
     return video_output, operation_log
 
 
@@ -365,6 +365,29 @@ def generate_video_from_frames(frames_path, output_path, fps=30):
     frames = []
     for file in frames_path:
         frames.append(read_image_from_userfolder(file))
+    frames = torch.from_numpy(np.asarray(frames))
+    if not os.path.exists(os.path.dirname(output_path)):
+        os.makedirs(os.path.dirname(output_path))
+    torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
+    return output_path
+
+def generate_video_from_paintedframes(frames, output_path, fps=30):
+    """
+    Generates a video from a list of frames.
+    
+    Args:
+        frames (list of numpy arrays): The frames to include in the video.
+        output_path (str): The path to save the generated video.
+        fps (int, optional): The frame rate of the output video. Defaults to 30.
+    """
+    # height, width, layers = frames[0].shape
+    # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    # video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+    # print(output_path)
+    # for frame in frames:
+    #     video.write(frame)
+    
+    # video.release()
     frames = torch.from_numpy(np.asarray(frames))
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
@@ -398,8 +421,8 @@ folder ="./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
-args.port = 12211
-args.device = "cuda:1"
+# args.port = 12213
+# args.device = "cuda:1"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
@@ -620,5 +643,5 @@ with gr.Blocks() as iface:
         # cache_examples=True,
     ) 
 iface.queue(concurrency_count=1)
-iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
-# iface.launch(debug=True, enable_queue=True)
+# iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
+iface.launch(debug=True, enable_queue=True)
