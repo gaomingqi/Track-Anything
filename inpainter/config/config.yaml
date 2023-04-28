@@ -2,3 +2,6 @@
 neighbor_stride: 5
 num_ref: -1
 step: 10
+# config infor for E2FGVI with splits (updated on 23/04/29)
+num_subset_frames: 50
+num_external_ref: 2 # (>=0)
