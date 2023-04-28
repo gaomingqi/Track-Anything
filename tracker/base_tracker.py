@@ -7,7 +7,7 @@ from PIL import Image
 import torch
 import yaml
 import torch.nn.functional as F
-from model.network import XMem
+from tracker.model.network import XMem
 from inference.inference_core import InferenceCore
 from tracker.util.mask_mapper import MaskMapper
 from torchvision import transforms
