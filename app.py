@@ -336,11 +336,11 @@ def inpaint_video(video_state, interactive_state, mask_dropdown):
 
     try:
         inpainted_frames = model.baseinpainter.inpaint(frames, inpaint_masks, ratio=interactive_state["resize_ratio"])   # numpy array, T, H, W, 3
+        video_output = generate_video_from_paintedframes(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps)
     except:
         operation_log = [("Error! You are trying to inpaint without masks input. Please track the selected mask first, and then press inpaint. If VRAM exceeded, please use the resize ratio to scaling down the image size.","Error"), ("","")]
         inpainted_frames = video_state["origin_images"]
         video_output = generate_video_from_frames(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
-    video_output = generate_video_from_paintedframes(inpainted_frames, output_path="./result/inpaint/{}".format(video_state["video_name"]), fps=fps)
     return video_output, operation_log
 
 
@@ -422,7 +422,7 @@ SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
 # args.port = 12213
-# args.device = "cuda:1"
+# args.device = "cuda:8"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
@@ -431,7 +431,7 @@ model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, e2fgvi_checkpoint,args
 
 title = """<p><h1 align="center">Track-Anything</h1></p>
     """
-description = """<p>Gradio demo for Track Anything, a flexible and interactive tool for video object tracking, segmentation, and inpainting. I To use it, simply upload your video, or click one of the examples to load them. Code: <a href="https://github.com/gaomingqi/Track-Anything">https://github.com/gaomingqi/Track-Anything</a> <a href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true"><img style="display: inline; margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3gLdBN6" alt="Duplicate Space" /></a></p>"""
+description = """<p>Gradio demo for Track Anything, a flexible and interactive tool for video object tracking, segmentation, and inpainting. To use it, simply upload your video, or click one of the examples to load them. Code: <a href="https://github.com/gaomingqi/Track-Anything">Track-Anything</a> <a href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true"><img style="display: inline; margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3gLdBN6" alt="Duplicate Space" /></a> If you stuck in unknown errors, please feel free to watch the Tutorial video.</p>"""
 
 
 with gr.Blocks() as iface:
@@ -449,7 +449,7 @@ with gr.Blocks() as iface:
             "masks": []
         },
         "track_end_number": None,
-        "resize_ratio": 1
+        "resize_ratio": 0.6
     }
     )
 
@@ -469,48 +469,78 @@ with gr.Blocks() as iface:
     gr.Markdown(title)
     gr.Markdown(description)
     with gr.Row():
-
-        # for user video input
         with gr.Column():
-            with gr.Row(scale=0.4):
-                video_input = gr.Video(autosize=True)
+            with gr.Tab("Test"):
+        # for user video input
                 with gr.Column():
-                    video_info = gr.Textbox(label="Video Info")
-                    resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
-                                            Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.", label="Tips for running this demo.")
-                    resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True)
-          
+                    with gr.Row(scale=0.4):
+                        video_input = gr.Video(autosize=True)
+                        with gr.Column():
+                            video_info = gr.Textbox(label="Video Info")
+                            resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
+                                                    Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.", label="Tips for running this demo.")
+                            resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=0.6, label="Resize ratio", visible=True)
+                
 
-            with gr.Row():
-                # put the template frame under the radio button
-                with gr.Column():
-                    # extract frames
-                    with gr.Column():
-                        extract_frames_button = gr.Button(value="Get video info", interactive=True, variant="primary") 
+                    with gr.Row():
+                        # put the template frame under the radio button
+                        with gr.Column():
+                            # extract frames
+                            with gr.Column():
+                                extract_frames_button = gr.Button(value="Get video info", interactive=True, variant="primary") 
 
-                     # click points settins, negative or positive, mode continuous or single
-                    with gr.Row():
-                        with gr.Row():
-                            point_prompt = gr.Radio(
-                                choices=["Positive",  "Negative"],
-                                value="Positive",
-                                label="Point Prompt",
-                                interactive=True,
-                                visible=False)
-                            remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False) 
-                            clear_button_click = gr.Button(value="Clear Clicks", interactive=True, visible=False).style(height=160)
-                            Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
-                    template_frame = gr.Image(type="pil",interactive=True, elem_id="template_frame", visible=False).style(height=360)
-                    image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Image Selection", visible=False)
-                    track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
-            
+                            # click points settins, negative or positive, mode continuous or single
+                            with gr.Row():
+                                with gr.Row():
+                                    point_prompt = gr.Radio(
+                                        choices=["Positive",  "Negative"],
+                                        value="Positive",
+                                        label="Point Prompt",
+                                        interactive=True,
+                                        visible=False)
+                                    remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False) 
+                                    clear_button_click = gr.Button(value="Clear Clicks", interactive=True, visible=False).style(height=160)
+                                    Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
+                            template_frame = gr.Image(type="pil",interactive=True, elem_id="template_frame", visible=False).style(height=360)
+                            image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Image Selection", visible=False)
+                            track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
+                    
+                        with gr.Column():
+                            run_status = gr.HighlightedText(value=[("Run","Error"),("Status","Normal")], visible=True)
+                            mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
+                            video_output = gr.Video(autosize=True, visible=False).style(height=360)
+                            with gr.Row():
+                                tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
+                                inpaint_video_predict_button = gr.Button(value="Inpaint", visible=False)
+                # set example
+                gr.Markdown("##  Examples")
+                gr.Examples(
+                    examples=[os.path.join(os.path.dirname(__file__), "./test_sample/", test_sample) for test_sample in ["test-sample8.mp4","test-sample4.mp4", \
+                                                                                                                        "test-sample2.mp4","test-sample13.mp4"]],
+                    fn=run_example,
+                    inputs=[
+                        video_input
+                    ],
+                    outputs=[video_input],
+                    # cache_examples=True,
+    ) 
+                
+            with gr.Tab("Tutorial"):
                 with gr.Column():
-                    run_status = gr.HighlightedText(value=[("Text","Error"),("to be","Label 2"),("highlighted","Label 3")], visible=True)
-                    mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
-                    video_output = gr.Video(autosize=True, visible=False).style(height=360)
-                    with gr.Row():
-                        tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
-                        inpaint_video_predict_button = gr.Button(value="Inpaint", visible=False)
+                    with gr.Row(scale=0.4):
+                        video_demo_operation = gr.Video(autosize=True) 
+                
+                # set example
+                gr.Markdown("## Operation tutorial video")
+                gr.Examples(
+                    examples=[os.path.join(os.path.dirname(__file__), "./test_sample/", test_sample) for test_sample in ["huggingface_demo_operation.mp4"]],
+                    fn=run_example,
+                    inputs=[
+                        video_demo_operation
+                    ],
+                    outputs=[video_demo_operation],
+                    # cache_examples=True,
+                ) 
 
     # first step: get the video information 
     extract_frames_button.click(
@@ -600,7 +630,7 @@ with gr.Blocks() as iface:
             "masks": []
         },
         "track_end_number": 0,
-        "resize_ratio": 1
+        "resize_ratio": 0.6
         },
         [[],[]],
         None,
@@ -608,7 +638,7 @@ with gr.Blocks() as iface:
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False, value=[]), gr.update(visible=False), \
-        gr.update(visible=False), gr.update(visible=False)
+        gr.update(visible=False), gr.update(visible=True)
                         
         ),
         [],
@@ -630,18 +660,6 @@ with gr.Blocks() as iface:
         inputs = [video_state, click_state,],
         outputs = [template_frame,click_state, run_status],
     )
-    # set example
-    gr.Markdown("##  Examples")
-    gr.Examples(
-        examples=[os.path.join(os.path.dirname(__file__), "./test_sample/", test_sample) for test_sample in ["test-sample8.mp4","test-sample4.mp4", \
-                                                                                                             "test-sample2.mp4","test-sample13.mp4"]],
-        fn=run_example,
-        inputs=[
-            video_input
-        ],
-        outputs=[video_input],
-        # cache_examples=True,
-    ) 
 iface.queue(concurrency_count=1)
 # iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
 iface.launch(debug=True, enable_queue=True)
