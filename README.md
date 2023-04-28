@@ -8,7 +8,7 @@
 <a src="https://img.shields.io/badge/%F0%9F%93%96-Open_in_Spaces-informational.svg?style=flat-square" href="https://arxiv.org/abs/2304.11968">
 <img src="https://img.shields.io/badge/%F0%9F%93%96-Arxiv_2304.11968-red.svg?style=flat-square">
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=trueg">
+<a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true">
 <img src="https://img.shields.io/badge/%F0%9F%A4%97-Hugging_Face_Space-informational.svg?style=flat-square">
 </a>
 <a src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square" href="https://zhengfenglab.com/">
@@ -31,23 +31,32 @@
 - 2023/04/25:  We are delighted to introduce [Caption-Anything](https://github.com/ttengwang/Caption-Anything) :writing_hand:, an inventive project from our lab that combines the capabilities of Segment Anything, Visual Captioning, and ChatGPT. 
 
 - 2023/04/20: We deployed [[DEMO]](https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=trueg) on Hugging Face :hugs:!
-## Demo
 
-https://user-images.githubusercontent.com/28050374/232842703-8395af24-b13e-4b8e-aafb-e94b61e6c449.MP4
+- 2023/04/14: We made Track-Anything public!
 
-### Multiple Object Tracking and Segmentation (with [XMem](https://github.com/hkchengrex/XMem))
+## :world_map: Video Tutorials
+
+https://user-images.githubusercontent.com/30309970/234902447-a4c59718-fcfe-443a-bd18-2f3f775cfc13.mp4
+
+---
+
+### :joystick: Example - Multiple Object Tracking and Segmentation (with [XMem](https://github.com/hkchengrex/XMem))
 
 https://user-images.githubusercontent.com/39208339/233035206-0a151004-6461-4deb-b782-d1dbfe691493.mp4
 
-### Video Object Tracking and Segmentation with Shot Changes (with [XMem](https://github.com/hkchengrex/XMem))
+---
+
+### :joystick: Example - Video Object Tracking and Segmentation with Shot Changes (with [XMem](https://github.com/hkchengrex/XMem))
 
 https://user-images.githubusercontent.com/30309970/232848349-f5e29e71-2ea4-4529-ac9a-94b9ca1e7055.mp4
 
-### Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
+---
+
+### :joystick: Example - Video Inpainting (with [E2FGVI](https://github.com/MCG-NKU/E2FGVI))
 
 https://user-images.githubusercontent.com/28050374/232959816-07f2826f-d267-4dda-8ae5-a5132173b8f4.mp4
 
-## Get Started
+## :computer: Get Started
 #### Linux & Windows
 ```shell
 # Clone the repository:
@@ -63,7 +72,7 @@ python app.py --device cuda:0
 ```
 
 
-## Citation
+## :book: Citation
 If you find this work useful for your research or applications, please cite using this BibTeX:
 ```bibtex
 @misc{yang2023track,
@@ -76,6 +85,6 @@ If you find this work useful for your research or applications, please cite usin
 }
 ```
 
-## Acknowledgements
+## :clap: Acknowledgements
 
 The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything), [XMem](https://github.com/hkchengrex/XMem), and [E2FGVI](https://github.com/MCG-NKU/E2FGVI). Thanks for the authors for their efforts.
