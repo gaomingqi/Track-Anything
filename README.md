@@ -28,6 +28,9 @@
 <!-- ![avengers]() -->
 
 ## :rocket: Updates
+
+- 2023/05/02: We uploaded tutorials in steps :world_map:. Check [HERE](./doc/tutorials.md) for more details.
+
 - 2023/04/29: We improved inpainting by decoupling GPU memory usage and video length. Now Track-Anything can inpaint videos with any length! :smiley_cat: Check [HERE](https://github.com/gaomingqi/Track-Anything/issues/4#issuecomment-1528198165) for our GPU memory requirements. 
 
 - 2023/04/25: We are delighted to introduce [Caption-Anything](https://github.com/ttengwang/Caption-Anything) :writing_hand:, an inventive project from our lab that combines the capabilities of Segment Anything, Visual Captioning, and ChatGPT. 
@@ -36,7 +39,7 @@
 
 - 2023/04/14: We made Track-Anything public!
 
-## :world_map: Video Tutorials
+## :world_map: Video Tutorials ([Try Track-Anything in Steps](./doc/tutorials.md))
 
 https://user-images.githubusercontent.com/30309970/234902447-a4c59718-fcfe-443a-bd18-2f3f775cfc13.mp4
 

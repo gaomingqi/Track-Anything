@@ -363,7 +363,7 @@ if __name__ == '__main__':
 	base_inpainter = BaseInpainter(checkpoint, device)
 	# 3/3: inpainting (frames: numpy array, T, H, W, 3; masks: numpy array, T, H, W)
 	# ratio: (0, 1], ratio for down sample, default value is 1
-	inpainted_frames = base_inpainter.inpaint(frames[:1000], masks[:1000], ratio=0.1)   # numpy array, T, H, W, 3
+	inpainted_frames = base_inpainter.inpaint(frames[:300], masks[:300], ratio=0.6)   # numpy array, T, H, W, 3
 
 	# save
 	for ti, inpainted_frame in enumerate(inpainted_frames):
