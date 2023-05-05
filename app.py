@@ -448,15 +448,15 @@ with gr.Blocks() as iface:
                             point_prompt = gr.Radio(
                                 choices=["Positive",  "Negative"],
                                 value="Positive",
-                                label="Point Prompt",
+                                label="Point prompt",
                                 interactive=True,
                                 visible=False)
                             remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False) 
-                            clear_button_click = gr.Button(value="Clear Clicks", interactive=True, visible=False).style(height=160)
+                            clear_button_click = gr.Button(value="Clear clicks", interactive=True, visible=False).style(height=160)
                             Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
                     template_frame = gr.Image(type="pil",interactive=True, elem_id="template_frame", visible=False).style(height=360)
-                    image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Image Selection", visible=False)
-                    track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frames", visible=False)
+                    image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track start frame", visible=False)
+                    track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frame", visible=False)
             
                 with gr.Column():
                     run_status = gr.HighlightedText(value=[("Text","Error"),("to be","Label 2"),("highlighted","Label 3")], visible=False)
@@ -464,7 +464,7 @@ with gr.Blocks() as iface:
                     video_output = gr.Video(autosize=True, visible=False).style(height=360)
                     with gr.Row():
                         tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
-                        inpaint_video_predict_button = gr.Button(value="Inpaint", visible=False)
+                        inpaint_video_predict_button = gr.Button(value="Inpainting", visible=False)
 
     # first step: get the video information 
     extract_frames_button.click(

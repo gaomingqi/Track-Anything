@@ -11,8 +11,9 @@
 <a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true">
 <img src="https://img.shields.io/badge/%F0%9F%A4%97-Hugging_Face_Space-informational.svg?style=flat-square">
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-2e8b57.svg?style=flat-square" href="./doc/tutorials.md">
-<img src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-2e8b57.svg?style=flat-square">
+<a src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-32b897.svg?style=flat-square" href="./doc/tutorials.md">
+<img src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-32b897.svg?style=flat-square">
+
 </a>
 <a src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square" href="https://zhengfenglab.com/">
 <img src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square">
@@ -42,7 +43,7 @@
 
 - 2023/04/14: We made Track-Anything public!
 
-## :world_map: Video Tutorials ([Try Track-Anything in Steps](./doc/tutorials.md))
+## :world_map: Video Tutorials ([Track-Anything Tutorials in Steps](./doc/tutorials.md))
 
 https://user-images.githubusercontent.com/30309970/234902447-a4c59718-fcfe-443a-bd18-2f3f775cfc13.mp4
 
