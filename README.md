@@ -11,12 +11,12 @@
 <a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true">
 <img src="https://img.shields.io/badge/%F0%9F%A4%97-Hugging_Face_Space-informational.svg?style=flat-square">
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-32b897.svg?style=flat-square" href="./doc/tutorials.md">
-<img src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-32b897.svg?style=flat-square">
+<a src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-2bb7b3.svg?style=flat-square" href="./doc/tutorials.md">
+<img src="https://img.shields.io/badge/%F0%9F%97%BA-Tutorials in Steps-2bb7b3.svg?style=flat-square">
 
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square" href="https://zhengfenglab.com/">
-<img src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square">
+<a src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-ed6c00.svg?style=flat-square" href="https://zhengfenglab.com/">
+<img src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-ed6c00.svg?style=flat-square">
 </a>
 </div>
 
