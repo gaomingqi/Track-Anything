@@ -6,9 +6,8 @@ hickle
 tensorboard
 numpy
 git+https://github.com/facebookresearch/segment-anything.git
-gradio==3.25.0
+gradio
 opencv-python
-pycocotools
 matplotlib
 pyyaml
 av
