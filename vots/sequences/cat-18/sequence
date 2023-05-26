@@ -1,0 +1,4 @@
+channels.color=color/%08d.jpg
+format=default
+fps=30
+name=cat-18
