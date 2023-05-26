@@ -10,3 +10,5 @@ debug_images/
 images/
 test_sample/
 result/
+vots/
+vots.py

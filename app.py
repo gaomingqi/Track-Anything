@@ -125,7 +125,7 @@ def get_frames_from_video(video_input, video_state):
 def run_example(example):
     return video_input
 # get the select frame from gradio slider
-def select_template(image_selection_slider, video_state, interactive_state):
+def select_template(image_selection_slider, video_state, interactive_state, mask_dropdown):
 
     # images = video_state[1]
     image_selection_slider -= 1
@@ -139,7 +139,10 @@ def select_template(image_selection_slider, video_state, interactive_state):
     # update the masks when select a new template frame
     # if video_state["masks"][image_selection_slider] is not None:
         # video_state["painted_images"][image_selection_slider] = mask_painter(video_state["origin_images"][image_selection_slider], video_state["masks"][image_selection_slider])
+    if mask_dropdown:
+        print("ok")
     operation_log = [("",""), ("Select frame {}. Try click image and add mask for tracking.".format(image_selection_slider),"Normal")]
+
 
     return video_state["painted_images"][image_selection_slider], video_state, interactive_state, operation_log
 
@@ -217,7 +220,6 @@ def remove_multi_mask(interactive_state, mask_dropdown):
 def show_mask(video_state, interactive_state, mask_dropdown):
     mask_dropdown.sort()
     select_frame = video_state["origin_images"][video_state["select_frame_number"]]
-    
     for i in range(len(mask_dropdown)):
         mask_number = int(mask_dropdown[i].split("_")[1]) - 1
         mask = interactive_state["multi_mask"]["masks"][mask_number]
@@ -375,8 +377,8 @@ folder ="./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
-# args.port = 12212
-# args.device = "cuda:1"
+args.port = 12212
+args.device = "cuda:3"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
