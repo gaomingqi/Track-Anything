@@ -1,34 +1,34 @@
 <!-- ![](./assets/track-anything-logo.jpg) -->
 
 <div align=center>
-<img src="./assets/track-anything-logo.jpg"/>
+<img src=./assets/track-anything-logo.jpg/>
 </div>
 <br/>
 <div align=center>
-<a src="https://img.shields.io/badge/%F0%9F%93%96-Open_in_Spaces-informational.svg?style=flat-square" href="https://arxiv.org/abs/2304.11968">
-<img src="https://img.shields.io/badge/%F0%9F%93%96-Arxiv_2304.11968-red.svg?style=flat-square">
+<a src=https://img.shields.io/badge/%F0%9F%93%96-Open_in_Spaces-informational.svg?style=flat-square href=https://arxiv.org/abs/2304.11968>
+<img src=https://img.shields.io/badge/%F0%9F%93%96-Arxiv_2304.11968-red.svg?style=flat-square>
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square" href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true">
-<img src="https://img.shields.io/badge/%F0%9F%A4%97-Hugging_Face_Space-informational.svg?style=flat-square">
+<a src=https://img.shields.io/badge/%F0%9F%A4%97-Open_in_Spaces-informational.svg?style=flat-square href=https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true>
+<img src=https://img.shields.io/badge/%F0%9F%A4%97-Hugging_Face_Space-informational.svg?style=flat-square>
 </a>
-<a src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square" href="https://zhengfenglab.com/">
-<img src="https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square">
+<a src=https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square href=https://zhengfenglab.com/>
+<img src=https://img.shields.io/badge/%F0%9F%9A%80-SUSTech_VIP_Lab-important.svg?style=flat-square>
 </a>
 </div>
 
-***Track-Anything*** is a flexible and interactive tool for video object tracking and segmentation. It is developed upon [Segment Anything](https://github.com/facebookresearch/segment-anything), can specify anything to track and segment via user clicks only. During tracking, users can flexibly change the objects they wanna track or correct the region of interest if there are any ambiguities. These characteristics enable ***Track-Anything*** to be suitable for: 
+***Track-Anything*** is a flexible and interactive tool for video object tracking and segmentation. It is developed upon [Segment Anything](https://github.com/facebookresearch/segment-anything) can specify anything to track and segment via user clicks only. During tracking users can flexibly change the objects they wanna track or correct the region of interest if there are any ambiguities. These characteristics enable ***Track-Anything*** to be suitable for: 
 - Video object tracking and segmentation with shot changes. 
 - Visualized development and data annnotation for video object tracking and segmentation.
-- Object-centric downstream video tasks, such as video inpainting and editing. 
+- Object-centric downstream video tasks such as video inpainting and editing. 
 
 <div align=center>
-<img src="./assets/avengers.gif" width="81%"/>
+<img src=./assets/avengers.gif width=81%/>
 </div>
 
 <!-- ![avengers]() -->
 
 ## :rocket: Updates
-- 2023/04/25:  We are delighted to introduce [Caption-Anything](https://github.com/ttengwang/Caption-Anything) :writing_hand:, an inventive project from our lab that combines the capabilities of Segment Anything, Visual Captioning, and ChatGPT. 
+- 2023/04/25:  We are delighted to introduce [Caption-Anything](https://github.com/ttengwang/Caption-Anything) :writing_hand: an inventive project from our lab that combines the capabilities of Segment Anything Visual Captioning and ChatGPT. 
 
 - 2023/04/20: We deployed [[DEMO]](https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=trueg) on Hugging Face :hugs:!
 ## Demo
@@ -62,20 +62,36 @@ python app.py --device cuda:0
 # python app.py --device cuda:0 --sam_model_type vit_b # for lower memory usage
 ```
 
+## Annotated VOTS2023 dataset
+#### Running the demo
+```code
+# server 110
+python app_vots.py --device cuda:3 --port 12221 --mask_save True --votdir /nvme-ssd/lizhe/dataset/vots2023 --sequence ants1   
+
+# server 108
+python app_vots.py --device cuda:3 --port 12221 --mask_save True --votdir /ssd2/tracking/vots2023 --sequence ants1
+```
+#### Operation 
+```
+Press the Get-Video-Info button to initialize the sequence
+Press the Tracking button to generate mask for each frames
+Refine the mask by select the Image Selection button and refine the mask for tracking
+
+```
 
 ## Citation
-If you find this work useful for your research or applications, please cite using this BibTeX:
+If you find this work useful for your research or applications please cite using this BibTeX:
 ```bibtex
-@misc{yang2023track,
-      title={Track Anything: Segment Anything Meets Videos}, 
-      author={Jinyu Yang and Mingqi Gao and Zhe Li and Shang Gao and Fangjing Wang and Feng Zheng},
-      year={2023},
-      eprint={2304.11968},
-      archivePrefix={arXiv},
+@misc{yang2023track
+      title={Track Anything: Segment Anything Meets Videos} 
+      author={Jinyu Yang and Mingqi Gao and Zhe Li and Shang Gao and Fangjing Wang and Feng Zheng}
+      year={2023}
+      eprint={2304.11968}
+      archivePrefix={arXiv}
       primaryClass={cs.CV}
 }
 ```
 
 ## Acknowledgements
 
-The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything), [XMem](https://github.com/hkchengrex/XMem), and [E2FGVI](https://github.com/MCG-NKU/E2FGVI). Thanks for the authors for their efforts.
+The project is based on [Segment Anything](https://github.com/facebookresearch/segment-anything) [XMem](https://github.com/hkchengrex/XMem) and [E2FGVI](https://github.com/MCG-NKU/E2FGVI). Thanks for the authors for their efforts.
