@@ -64,6 +64,10 @@ python app.py --device cuda:0
 
 ## Annotated VOTS2023 dataset
 #### Running the demo
+```shell
+# Clone the repository:
+git clone -b beta https://github.com/gaomingqi/Track-Anything.git
+```
 ```code
 # server 110
 python app_vots.py --device cuda:3 --port 12221 --mask_save True --votdir /nvme-ssd/lizhe/dataset/vots2023 --sequence ants1   
