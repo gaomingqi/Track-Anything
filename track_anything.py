@@ -81,6 +81,8 @@ def parse_augment():
     parser.add_argument('--port', type=int, default=6080, help="only useful when running gradio applications")  
     parser.add_argument('--debug', action="store_true")
     parser.add_argument('--mask_save', default=False)
+    parser.add_argument('--sequence', default="", help="sequence name")
+    parser.add_argument('--votdir', default="", help="vot workspace directory")
     args = parser.parse_args()
 
     if args.debug:
