@@ -21,41 +21,6 @@ try:
     from mmcv.cnn import ConvModule
 except:
     os.system("mim install mmcv")
-# generate video after vos inference
-# def generate_video_from_frames(frames, output_path, fps=30):
-#     """
-#     Generates a video from a list of frames.
-    
-#     Args:
-#         frames (list of numpy arrays): The frames to include in the video.
-#         output_path (str): The path to save the generated video.
-#         fps (int, optional): The frame rate of the output video. Defaults to 30.
-#     """
-#     # height, width, layers = frames[0].shape
-#     # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-#     # video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-#     # print(output_path)
-#     # for frame in frames:
-#     #     video.write(frame)
-    
-#     # video.release()
-#     if os.path.exists(output_path):
-#         return output_path
-#     frames = torch.from_numpy(np.asarray(frames))
-#     if not os.path.exists(os.path.dirname(output_path)):
-#         os.makedirs(os.path.dirname(output_path))
-#     torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
-#     return output_path
-
-# sequence = "/home/caption_anthing/Track-Anything/vots/sequences/kite-4/color"
-
-# frames = [os.path.join(sequence, i) for i in os.listdir(sequence)]
-# frames.sort()
-
-# pil_images = [np.asanyarray(Image.open(i)) for i in frames]
-
-# generate_video_from_frames(pil_images, "./vots/kite-4.mp4", fps=30)
-
 
 # download checkpoints
 def download_checkpoint(url, folder, filename):
@@ -108,7 +73,7 @@ def get_prompt(click_state, click_input):
 
 
 # extract frames from upload video
-def get_frames_from_video(video_state):
+def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     """
     Args:
         video_path:str
@@ -118,8 +83,25 @@ def get_frames_from_video(video_state):
     """
 
     user_name = time.time()
+    mask_dir = os.path.join(args.votdir, "mask_vis", args.sequence)
+    first_masks_path = [os.path.join(mask_dir, name) for name in os.listdir(mask_dir)]
+    first_masks_path.sort()
+
+    for mask_path in first_masks_path:
+        mask = np.asarray(Image.open(mask_path))
+        interactive_state["multi_mask"]["masks"].append(mask)
+        interactive_state["multi_mask"]["mask_names"].append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
+
+        mask_dropdown.append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
+    mask_dropdown.sort()
+    first_template_mask = interactive_state["multi_mask"]["masks"][int(mask_dropdown[0].split("_")[1]) - 1] * (int(mask_dropdown[0].split("_")[1]))
+    for i in range(1,len(mask_dropdown)):
+        mask_number = int(mask_dropdown[i].split("_")[1]) - 1 
+        first_template_mask = np.clip(first_template_mask+interactive_state["multi_mask"]["masks"][mask_number]*(mask_number+1), 0, mask_number+1) 
+
     frames_name = os.listdir(os.path.join(args.votdir, "sequences", args.sequence, "color"))
     frames_name.sort()
+
     frames = [os.path.join(args.votdir, "sequences", args.sequence, "color", i) for i in frames_name]
 
     video_path = generate_video_from_frames(frames, output_path=os.path.join(args.votdir, "frame2video", "{}.mp4".format(args.sequence)))
@@ -132,41 +114,7 @@ def get_frames_from_video(video_state):
     # os.makedirs(os.path.join("/tmp/{}/originimages/{}".format(video_state["user_name"], video_state["video_name"])), exist_ok=True)
     os.makedirs(os.path.join("/tmp/{}/paintedimages/{}".format(video_state["user_name"], video_state["video_name"])), exist_ok=True)
     operation_log = [("",""),("Upload video already. Try click the image for adding targets to track and inpaint.","Normal")]
-    # try:
-    #     cap = cv2.VideoCapture(video_path)
-    #     fps = cap.get(cv2.CAP_PROP_FPS)
-    #     if not cap.isOpened():
-    #         operation_log = [("No frames extracted, please input video file with '.mp4.' '.mov'.", "Error")]
-    #         print("No frames extracted, please input video file with '.mp4.' '.mov'.")
-    #         return None, None, None, None, \
-    #                 None, None, None, None, \
-    #                 None, None, None, None, \
-    #                 None, None, gr.update(visible=True, value=operation_log)
-    #     image_index = 0
-    #     while cap.isOpened():
-    #         ret, frame = cap.read()
-    #         if ret == True:
-    #             current_memory_usage = psutil.virtual_memory().percent
 
-    #             # try solve memory usage problem, save image to disk instead of memory
-    #             frames.append(save_image_to_userfolder(video_state, image_index, frame, True))
-    #             image_index +=1
-    #             # frames.append(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    #             if current_memory_usage > 90:
-    #                 operation_log = [("Memory usage is too high (>90%). Stop the video extraction. Please reduce the video resolution or frame rate.", "Error")]
-    #                 print("Memory usage is too high (>90%). Please reduce the video resolution or frame rate.")
-    #                 break
-    #         else:
-    #             break
-
-    # except (OSError, TypeError, ValueError, KeyError, SyntaxError) as e:
-    # # except:
-    #     operation_log = [("read_frame_source:{} error. {}\n".format(video_path, str(e)), "Error")]
-    #     print("read_frame_source:{} error. {}\n".format(video_path, str(e)))
-    #     return None, None, None, None, \
-    #             None, None, None, None, \
-    #             None, None, None, None, \
-    #             None, None, gr.update(visible=True, value=operation_log)
     first_image = read_image_from_userfolder(frames[0])
     image_size = (first_image.shape[0], first_image.shape[1]) 
     # initialize video_state
@@ -180,13 +128,17 @@ def get_frames_from_video(video_state):
         "select_frame_number": 0,
         "fps": 30
         }
+    video_state['masks'][0] = first_template_mask
+
+    select_frame, run_status = show_mask(video_state, interactive_state, mask_dropdown)
+
     video_info = "Video Name: {}, FPS: {}, Total Frames: {}, Image Size:{}".format(video_state["video_name"], video_state["fps"], len(frames), image_size)
     model.samcontroler.sam_controler.reset_image() 
     model.samcontroler.sam_controler.set_image(first_image)
     return video_path, video_state, video_info, first_image, gr.update(visible=True, maximum=len(frames), value=1), \
             gr.update(visible=True, maximum=len(frames), value=len(frames)), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
-            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
-            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), 
+            gr.update(visible=True, value=select_frame), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=mask_dropdown), \
+            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), interactive_state
 
 def run_example(example):
     return example 
@@ -333,7 +285,8 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         video_state["logits"][video_state["select_frame_number"]:] = logits
         video_state["painted_images"][video_state["select_frame_number"]:] = painted_images_path
 
-    video_output = generate_video_from_frames(video_state["painted_images"], output_path="./result/track/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
+    # video_output = generate_video_from_frames(video_state["painted_images"], output_path="./result/track/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
+    video_output = generate_video_from_frames(video_state["painted_images"], output_path=os.path.join(args.votdir, "result_video", "{}_result.mp4".format(video_state["video_name"])), fps=fps) # import video_input to name the output video
     interactive_state["inference_times"] += 1
     
     print("For generating this tracking result, inference times: {}, click times: {}, positive: {}, negative: {}".format(interactive_state["inference_times"], 
@@ -399,14 +352,6 @@ def generate_video_from_frames(frames_path, output_path, fps=30):
         output_path (str): The path to save the generated video.
         fps (int, optional): The frame rate of the output video. Defaults to 30.
     """
-    # height, width, layers = frames[0].shape
-    # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-    # video = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
-    # print(output_path)
-    # for frame in frames:
-    #     video.write(frame)
-    
-    # video.release()
     if os.path.exists(output_path):
         return output_path
     frames = []
@@ -441,6 +386,8 @@ def generate_video_from_paintedframes(frames, output_path, fps=30):
     torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
     return output_path
 
+def get_mask_from_vot():
+    return 0
 
 # args, defined in track_anything.py
 args = parse_augment()
@@ -594,12 +541,12 @@ with gr.Blocks() as iface:
     extract_frames_button.click(
         fn=get_frames_from_video,
         inputs=[
-            video_state
+            video_state, interactive_state, mask_dropdown
         ],
         outputs=[video_input, video_state, video_info, template_frame, image_selection_slider, 
                  track_pause_number_slider,point_prompt, clear_button_click, Add_mask_button, 
                  template_frame, tracking_video_predict_button, video_output, mask_dropdown, 
-                 remove_mask_button, inpaint_video_predict_button, run_status]
+                 remove_mask_button, inpaint_video_predict_button, run_status, interactive_state]
     )   
 
     # second step: select images from slider
