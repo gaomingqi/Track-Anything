@@ -73,7 +73,7 @@ python app_vots.py --device cuda:3 --port 12221 --mask_save True --votdir /ssd2/
 ```
 #### Operation 
 ```
-check the sequence list in /vots/group_seq
+check the sequence list in /vots/group_seq to find your sequence list
 Press the Get-Video-Info button to initialize the sequence
 Press the Tracking button to generate mask for each frames
 Refine the mask by select the Image Selection button and refine the mask for tracking
