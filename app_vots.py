@@ -89,7 +89,10 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     frames_name = os.listdir(os.path.join(args.votdir, "sequences", args.sequence, "color"))
     frames_name.sort()
 
+
     frames = [os.path.join(args.votdir, "sequences", args.sequence, "color", i) for i in frames_name]
+    first_image = read_image_from_userfolder(frames[0])
+    image_size = (first_image.shape[0], first_image.shape[1]) 
     try:
         if os.path.exists(os.path.join(args.votdir, "gt_mask", args.sequence)):
             old_gt_mask = [np.asarray(Image.open(os.path.join(args.votdir, "gt_mask", args.sequence, "{:08d}.png".format(i+1)))) for i in range(len(frames))]
@@ -124,8 +127,7 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     os.makedirs(os.path.join("/tmp/{}/paintedimages/{}".format(video_state["user_name"], video_state["video_name"])), exist_ok=True)
     operation_log = [("",""),("Upload video already. Try click the image for adding targets to track and inpaint.","Normal")]
 
-    first_image = read_image_from_userfolder(frames[0])
-    image_size = (first_image.shape[0], first_image.shape[1]) 
+
     # initialize video_state
     video_state = {
         "user_name": user_name,
