@@ -225,12 +225,15 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt:gr
 def add_multi_mask(video_state, interactive_state, mask_dropdown):
     try:
         mask_dropdown_num = [int(i.split('_')[1]) for i in mask_dropdown]
-        for i in range(1, mask_dropdown_num[-1]):
-            if i not in mask_dropdown_num:
-                missing_mask_id = i
-                break
-            else:
-                missing_mask_id = mask_dropdown_num[-1]+1
+        if len(mask_dropdown_num) == 0:
+            missing_mask_id = 1
+        else:
+            for i in range(1, mask_dropdown_num[-1]):
+                if i not in mask_dropdown_num:
+                    missing_mask_id = i
+                    break
+                else:
+                    missing_mask_id = mask_dropdown_num[-1]+1
                 
         mask = video_state["sam_mask"]
 
@@ -274,6 +277,8 @@ def show_mask(video_state, interactive_state, mask_dropdown):
     select_mask = video_state["masks"][video_state["select_frame_number"]]
 
     mask_dropdown_num = [int(i.split('_')[1]) for i in mask_dropdown]
+    if mask_dropdown_num == []:
+        return select_frame, [("",""), ("Please add mask first","Error")]
     new_masks = [(select_mask==i+1) * (i+1) for i in range(mask_dropdown_num[-1])]
     for i in mask_dropdown_num:
 
