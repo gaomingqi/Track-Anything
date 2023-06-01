@@ -119,7 +119,7 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
         first_template_mask = np.clip(first_template_mask+interactive_state["multi_mask"]["masks"][mask_number]*(mask_number+1), 0, mask_number+1) 
 
   
-
+   
     video_path = generate_video_from_frames(frames, output_path=os.path.join(args.votdir, "frame2video", "{}.mp4".format(args.sequence)))
 
 
@@ -423,6 +423,8 @@ def generate_video_from_frames(frames_path, output_path, fps=30):
     print("read frames from sequence")
     for file in tqdm(frames_path):
         frames.append(read_image_from_userfolder(file))
+        
+    frames = [ensure_divisible_by_two(image) for image in frames]
     frames = torch.from_numpy(np.asarray(frames))
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
@@ -475,6 +477,13 @@ def get_mask_from_vot(video_state, output_path, fps=30):
     # video_state["painted_images"] = video_painted_images
     return output_path, video_state
 
+def ensure_divisible_by_two(image):
+    height, width = image.shape[:2]
+    if width % 2 != 0:
+        width -= 1
+    if height % 2 != 0:
+        height -= 1
+    return cv2.resize(image, (width, height))
 # args, defined in track_anything.py
 args = parse_augment()
 

@@ -5,6 +5,15 @@ import torch
 import cv2
 # from tqdm import tqdm
 from multiprocessing import Pool
+
+def ensure_divisible_by_two(image):
+    height, width = image.shape[:2]
+    if width % 2 != 0:
+        width -= 1
+    if height % 2 != 0:
+        height -= 1
+    return cv2.resize(image, (width, height))
+
 def read_image_from_userfolder(image_path):
     # if type:
     image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
@@ -24,12 +33,16 @@ def generate_video_from_frames(frames_path, output_path, fps=30):
     # print("read frames from sequence")
     for file in frames_path:
         frames.append(cv2.cvtColor(cv2.imread(file), cv2.COLOR_BGR2RGB))
+    frames = [ensure_divisible_by_two(image) for image in frames]
     frames = torch.from_numpy(np.asarray(frames))
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
     # print("generate video from frames for preview")
+
     torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
     return output_path
+
+
 
 def process_seq(seq):
     frames = [os.path.join(votdir, "sequences", seq, "color", i) for i in os.listdir(os.path.join(votdir, "sequences", seq, "color"))]
@@ -41,6 +54,8 @@ def process_seq(seq):
 
 votdir = "/home/dataset/vots2023/"
 sequence_list = os.listdir(os.path.join(votdir, "sequences"))
+sequence_list.remove('list.txt')
+sequence_list.remove('list.txt.bp')
 num_process = 8
 with Pool(num_process) as p:
     video_paths = p.map(process_seq, sequence_list)
