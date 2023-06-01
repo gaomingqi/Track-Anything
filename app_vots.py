@@ -16,6 +16,7 @@ import torchvision
 import torch 
 import torch.nn.functional as F
 from tools.painter import mask_painter
+from tqdm import tqdm
 import psutil
 import time
 try: 
@@ -365,7 +366,7 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
             os.makedirs(mask_save_dir)
         i = 1
         print("save mask")
-        for mask in video_state["masks"]:
+        for mask in tqdm(video_state["masks"]):
             # np.save(os.path.join(mask_save_dir, '{:05d}.npy'.format(i)), mask)
             Image.fromarray(mask).save(os.path.join(mask_save_dir, '{:08d}.png'.format(i)))
             i+=1
@@ -419,11 +420,13 @@ def generate_video_from_frames(frames_path, output_path, fps=30):
     if os.path.exists(output_path):
         return output_path
     frames = []
-    for file in frames_path:
+    print("read frames from sequence")
+    for file in tqdm(frames_path):
         frames.append(read_image_from_userfolder(file))
     frames = torch.from_numpy(np.asarray(frames))
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
+    print("generate video from frames for preview")
     torchvision.io.write_video(output_path, frames, fps=fps, video_codec="libx264")
     return output_path
 
@@ -447,21 +450,25 @@ def get_mask_from_vot(video_state, output_path, fps=30):
     masks = video_state["masks"]
     frames = video_state["origin_images"]
     # video_painted_images = [] 
+    height, width = np.asarray(Image.open(video_state["origin_images"][0])).shape[:2]
+    new_size = (width//2, height//2)
     painted_images = []
-    for i in range(len(masks)):
+    print("painting mask")
+    for i in tqdm(range(len(masks))):
         num_objs = masks[i].max()
         painted_image = np.asarray(Image.open(frames[i]).convert('RGB'))
         for obj in range(1, num_objs+1):
             if np.max(masks[i]==obj) == 0:
                 continue
             painted_image = mask_painter(painted_image, (masks[i]==obj).astype('uint8'), mask_color=obj+1)
-        painted_images.append(painted_image)
+        painted_images.append(cv2.resize(painted_image, new_size, interpolation=cv2.INTER_AREA))
         # video_painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
 
     painted_images = torch.from_numpy(np.asarray(painted_images))
     # resize for accelerating video generation
     # new_size = [painted_images.size(1)//2, painted_images.size(2)//2]
     # painted_images_resized = F.interpolate(painted_images, size=new_size, mode='bilinear')
+    print("saving result videos")
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
     torchvision.io.write_video(output_path, painted_images, fps=fps, video_codec="libx264")
