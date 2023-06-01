@@ -59,19 +59,19 @@ class TrackingAnything():
         painted_images = []
         for i in tqdm(range(len(images)), desc="Tracking image"):
             if i ==0:           
-                mask, logit, painted_image = self.xmem.track(read_image_from_userfolder(images[i]), template_mask)
+                mask, logit = self.xmem.track(read_image_from_userfolder(images[i]), template_mask)
                 masks.append(mask)
                 logits.append(logit)
                 # painted_images.append(painted_image)
-                painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
+                # painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
                 
             else:
-                mask, logit, painted_image = self.xmem.track(read_image_from_userfolder(images[i]))
+                mask, logit = self.xmem.track(read_image_from_userfolder(images[i]))
                 masks.append(mask)
                 logits.append(logit)
                 # painted_images.append(painted_image)
-                painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
-        return masks, logits, painted_images
+                # painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
+        return masks, logits
     
         
 def parse_augment():

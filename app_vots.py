@@ -14,6 +14,7 @@ import requests
 import json
 import torchvision
 import torch 
+import torch.nn.functional as F
 from tools.painter import mask_painter
 import psutil
 import time
@@ -84,8 +85,10 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
 
     user_name = time.time()
     mask_dir = os.path.join(args.votdir, "mask_vis", args.sequence)
+
     first_masks_path = [os.path.join(mask_dir, name) for name in os.listdir(mask_dir)]
     first_masks_path.sort()
+
     frames_name = os.listdir(os.path.join(args.votdir, "sequences", args.sequence, "color"))
     frames_name.sort()
 
@@ -178,10 +181,22 @@ def select_template(image_selection_slider, video_state, interactive_state, mask
 def get_end_number(track_pause_number_slider, video_state, interactive_state):
     track_pause_number_slider -= 1
     interactive_state["track_end_number"] = track_pause_number_slider
-    operation_log = [("",""),("Set the tracking finish at frame {}".format(track_pause_number_slider),"Normal")]
 
+    mask = video_state["masks"][track_pause_number_slider]
+    frame = video_state["origin_images"][track_pause_number_slider]
+    num_objs = mask.max()
+    painted_image = np.asarray(Image.open(frame).convert('RGB'))
+    for obj in range(1, num_objs+1):
+        if np.max(mask==obj) == 0:
+            continue
+        painted_image = mask_painter(painted_image, (mask==obj).astype('uint8'), mask_color=obj+1)
+
+    
+    operation_log = [("",""),("Set the tracking finish at frame {}".format(track_pause_number_slider),"Normal")]
+    # operation_log = [("",""), ("Select {} for tracking or inpainting".format(mask_dropdown),"Normal")]
     # select_frame, operation_log_1 = show_mask(video_state, interactive_state, mask_dropdown)
-    return read_image_from_userfolder(video_state["painted_images"][track_pause_number_slider]),interactive_state, operation_log
+    # return read_image_from_userfolder(video_state["painted_images"][track_pause_number_slider]),interactive_state, operation_log
+    return painted_image,interactive_state, operation_log
     # return select_frame,interactive_state, operation_log
 
 def get_resize_ratio(resize_ratio_slider, interactive_state):
@@ -217,7 +232,7 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt:gr
                                                       )
     video_state["sam_mask"] = mask
     video_state["logits"][video_state["select_frame_number"]] = logit
-    video_state["painted_images"][video_state["select_frame_number"]] = save_image_to_userfolder(video_state, index=video_state["select_frame_number"], image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB),type=False)
+    # video_state["painted_images"][video_state["select_frame_number"]] = save_image_to_userfolder(video_state, index=video_state["select_frame_number"], image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB),type=False)
 
     operation_log = [("",""), ("Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment","Normal")]
     return painted_image, video_state, interactive_state, operation_log
@@ -228,12 +243,12 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
         if len(mask_dropdown_num) == 0:
             missing_mask_id = 1
         else:
-            for i in range(1, mask_dropdown_num[-1]):
+            for i in range(1, mask_dropdown_num[-1]+1):
                 if i not in mask_dropdown_num:
                     missing_mask_id = i
                     break
                 else:
-                    missing_mask_id = mask_dropdown_num[-1]+1
+                    missing_mask_id = mask_dropdown_num[-1] + 1
                 
         mask = video_state["sam_mask"]
 
@@ -319,18 +334,18 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         template_mask[0][0]=1
         operation_log = [("Error! Please add at least one mask to track by clicking the left image.","Error"), ("","")]
         # return video_output, video_state, interactive_state, operation_error
-    masks, logits, painted_images_path = model.generator(images=following_frames, template_mask=template_mask, video_state=video_state)
+    masks, logits  = model.generator(images=following_frames, template_mask=template_mask, video_state=video_state)
     # clear GPU memory
     model.xmem.clear_memory()
 
     if interactive_state["track_end_number"]: 
         video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = masks
         video_state["logits"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = logits
-        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = painted_images_path
+        # video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = painted_images_path
     else:
         video_state["masks"][video_state["select_frame_number"]:] = masks
         video_state["logits"][video_state["select_frame_number"]:] = logits
-        video_state["painted_images"][video_state["select_frame_number"]:] = painted_images_path
+        # video_state["painted_images"][video_state["select_frame_number"]:] = painted_images_path
 
     # video_output = generate_video_from_frames(video_state["painted_images"], output_path="./result/track/{}".format(video_state["video_name"]), fps=fps) # import video_input to name the output video
     os.system("rm {}".format(os.path.join(args.votdir, "result_video", "{}".format(video_state["video_name"]))))
@@ -431,23 +446,26 @@ def generate_video_from_paintedframes(frames, output_path, fps=30):
 def get_mask_from_vot(video_state, output_path, fps=30):
     masks = video_state["masks"]
     frames = video_state["origin_images"]
-    video_painted_images = [] 
+    # video_painted_images = [] 
     painted_images = []
     for i in range(len(masks)):
         num_objs = masks[i].max()
-        painted_image = np.asarray(Image.open(frames[i]))
+        painted_image = np.asarray(Image.open(frames[i]).convert('RGB'))
         for obj in range(1, num_objs+1):
             if np.max(masks[i]==obj) == 0:
                 continue
             painted_image = mask_painter(painted_image, (masks[i]==obj).astype('uint8'), mask_color=obj+1)
         painted_images.append(painted_image)
-        video_painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
+        # video_painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
 
     painted_images = torch.from_numpy(np.asarray(painted_images))
+    # resize for accelerating video generation
+    # new_size = [painted_images.size(1)//2, painted_images.size(2)//2]
+    # painted_images_resized = F.interpolate(painted_images, size=new_size, mode='bilinear')
     if not os.path.exists(os.path.dirname(output_path)):
         os.makedirs(os.path.dirname(output_path))
     torchvision.io.write_video(output_path, painted_images, fps=fps, video_codec="libx264")
-    video_state["painted_images"] = video_painted_images
+    # video_state["painted_images"] = video_painted_images
     return output_path, video_state
 
 # args, defined in track_anything.py

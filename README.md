@@ -82,6 +82,12 @@ Press the Get-Video-Info button to initialize the sequence
 Press the Tracking button to generate mask for each frames
 Refine the mask by select the Image Selection button and refine the mask for tracking
 
+Mask save path:
+# server 110
+/nvme-ssd/lizhe/dataset/vots2023/gt_mask/
+
+# server 108
+/ssd2/tracking/vots2023/gt_mask/
 ```
 
 ## Citation
