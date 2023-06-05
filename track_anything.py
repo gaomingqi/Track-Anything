@@ -83,6 +83,7 @@ def parse_augment():
     parser.add_argument('--mask_save', default=False)
     parser.add_argument('--sequence', default="", help="sequence name")
     parser.add_argument('--votdir', default="", help="vot workspace directory")
+    parser.add_argument('--davisdir', default="", help="davis workspace directory")
     args = parser.parse_args()
 
     if args.debug:

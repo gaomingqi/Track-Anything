@@ -30,7 +30,7 @@ class BaseInpainter:
         """
         net = importlib.import_module('inpainter.model.e2fgvi_hq')
         self.model = net.InpaintGenerator().to(device)
-        self.model.load_state_dict(torch.load(E2FGVI_checkpoint, map_location=device))
+        self.model.load_state_dict(torch.load(E2FGVI_checkpoint, map_location="cpu"))
         self.model.eval()
         self.device = device
         # load configurations
