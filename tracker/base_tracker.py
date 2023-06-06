@@ -29,7 +29,7 @@ class BaseTracker:
         with open("tracker/config/config.yaml", 'r') as stream: 
             config = yaml.safe_load(stream) 
         # initialise XMem
-        network = XMem(config, xmem_checkpoint).to(device).eval()
+        network = XMem(config, xmem_checkpoint, map_location=device).eval()
         # initialise IncerenceCore
         self.tracker = InferenceCore(network, config)
         # data transformation
