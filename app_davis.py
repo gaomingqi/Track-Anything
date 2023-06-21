@@ -85,7 +85,7 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     """
 
     user_name = time.time()
-    mask_dir = os.path.join(args.davisdir, "Annotations/480", args.sequence)
+    mask_dir = os.path.join(args.davisdir, "Annotations/480p", args.sequence)
 
     masks_path = [os.path.join(mask_dir, name) for name in os.listdir(mask_dir)]
     masks_path.sort()
@@ -102,6 +102,7 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     try:
         if os.path.exists(os.path.join(args.davisdir, "workspace/gt_mask", args.sequence)):
             old_gt_mask = [np.asarray(Image.open(os.path.join(args.davisdir, "workspace/gt_mask", args.sequence, "{:05d}.png".format(i)))) for i in range(len(frames))]
+
             # first_masks_path.append(gt_mask_path)
         else:
             old_gt_mask = [np.zeros((image_size[0], image_size[1]), np.uint8)]*len(frames)
@@ -119,8 +120,9 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
     mask_dropdown_num = list(np.unique(first_masks))
     mask_dropdown_num.remove(0)
     for i in mask_dropdown_num:
-        interactive_state["multi_mask"]["masks"][i-1] = first_masks==i * 1
-        interactive_state["multi_mask"]["masks"][i-1] *= 1 
+        mask = first_masks==i
+        interactive_state["multi_mask"]["masks"].append(mask*1) 
+        interactive_state["multi_mask"]["mask_names"].append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
         mask_dropdown.append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
 
     first_template_mask = interactive_state["multi_mask"]["masks"][int(mask_dropdown[0].split("_")[1]) - 1] * (int(mask_dropdown[0].split("_")[1]))
@@ -154,17 +156,27 @@ def get_frames_from_video(video_state, interactive_state, mask_dropdown):
         "select_frame_number": 0,
         "fps": 30
         }
-    video_state['masks'][0] = first_template_mask
+    video_state['masks'][0] = first_template_mask.astype(np.uint8)
 
     select_frame, run_status = show_mask(video_state, interactive_state, mask_dropdown)
+
+    # generate video if masks exists
+  
 
     video_info = "Video Name: {}, FPS: {}, Total Frames: {}, Image Size:{}".format(video_state["video_name"], video_state["fps"], len(frames), image_size)
     model.samcontroler.sam_controler.reset_image() 
     model.samcontroler.sam_controler.set_image(first_image)
-    return video_path, video_state, video_info, first_image, gr.update(visible=True, maximum=len(frames), value=1), \
-            gr.update(visible=True, maximum=len(frames), value=len(frames)), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
-            gr.update(visible=True, value=select_frame), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), \
-            gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), interactive_state
+    if os.path.exists(os.path.join(args.davisdir, "workspace/gt_mask", args.sequence)):
+        video_output, video_state = get_mask_from_vot(video_state, output_path=os.path.join(args.davisdir, "workspace/result_video", "{}".format(video_state["video_name"])))
+        return video_path, video_state, video_info, first_image, gr.update(visible=True, maximum=len(frames), value=1), \
+                gr.update(visible=True, maximum=len(frames), value=len(frames)), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
+                gr.update(visible=True, value=select_frame), gr.update(visible=True), gr.update(visible=True, value=video_output), gr.update(visible=True, choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), \
+                gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), interactive_state
+    else:
+        return video_path, video_state, video_info, first_image, gr.update(visible=True, maximum=len(frames), value=1), \
+                gr.update(visible=True, maximum=len(frames), value=len(frames)), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), \
+                gr.update(visible=True, value=select_frame), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), \
+                gr.update(visible=True), gr.update(visible=True), gr.update(visible=True, value=operation_log), interactive_state
 
 def run_example(example):
     return example 
@@ -373,11 +385,11 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         mask_save_dir = os.path.join(args.davisdir,'workspace/gt_mask', video_state["video_name"].split('.')[0])
         if not os.path.exists(mask_save_dir):
             os.makedirs(mask_save_dir)
-        i = 1
+        i = 0
         print("save mask")
         for mask in tqdm(video_state["masks"]):
             # np.save(os.path.join(mask_save_dir, '{:05d}.npy'.format(i)), mask)
-            Image.fromarray(mask).save(os.path.join(mask_save_dir, '{:08d}.png'.format(i)))
+            Image.fromarray(mask).save(os.path.join(mask_save_dir, '{:05d}.png'.format(i)))
             i+=1
     #### shanggao code for mask save
     return video_output, video_state, interactive_state, operation_log
@@ -475,6 +487,7 @@ def get_mask_from_vot(video_state, output_path, fps=30):
         painted_images.append(cv2.resize(painted_image, new_size, interpolation=cv2.INTER_AREA))
         # video_painted_images.append(save_image_to_userfolder(video_state, index=i, image=cv2.cvtColor(np.asarray(painted_image),cv2.COLOR_BGR2RGB), type=False))
 
+    painted_images = [ensure_divisible_by_two(image) for image in painted_images]
     painted_images = torch.from_numpy(np.asarray(painted_images))
     # resize for accelerating video generation
     # new_size = [painted_images.size(1)//2, painted_images.size(2)//2]
