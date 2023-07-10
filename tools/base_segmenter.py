@@ -4,7 +4,7 @@ import cv2
 from PIL import Image, ImageDraw, ImageOps
 import numpy as np
 from typing import Union
-from segment_anything import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator
+from mobile_sam import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator
 import matplotlib.pyplot as plt
 import PIL
 from .mask_painter import mask_painter
@@ -18,7 +18,7 @@ class BaseSegmenter:
         model_type: vit_b, vit_l, vit_h
         """
         print(f"Initializing BaseSegmenter to {device}")
-        assert model_type in ['vit_b', 'vit_l', 'vit_h'], 'model_type must be vit_b, vit_l, or vit_h'
+        assert model_type in ['vit_b', 'vit_l', 'vit_h', 'vit_t'], 'model_type must be vit_b, vit_l, vit_h or vit_t (for MobileSAM)'
 
         self.device = device
         self.torch_dtype = torch.float16 if 'cuda' in device else torch.float32
