@@ -33,6 +33,8 @@
 
 ## :rocket: Updates
 
+- 2023/07/10: [MobileSAM](https://github.com/ChaoningZhang/MobileSAM) support is available, resulting in a faster experience on CPU and slow devices. To use it add the `mobile_sam.pt` to the checkpoints folder and run `app.py` with `--sam_model_type vit_t`.
+
 - 2023/05/02: We uploaded tutorials in steps :world_map:. Check [HERE](./doc/tutorials.md) for more details.
 
 - 2023/04/29: We improved inpainting by decoupling GPU memory usage and video length. Now Track-Anything can inpaint videos with any length! :smiley_cat: Check [HERE](https://github.com/gaomingqi/Track-Anything/issues/4#issuecomment-1528198165) for our GPU memory requirements. 
@@ -77,7 +79,8 @@ pip install -r requirements.txt
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0
-# python app.py --device cuda:0 --sam_model_type vit_b # for lower memory usage
+# python app.py --device cuda:0 --sam_model_type vit_b  # for lower memory usage
+# python app.py --device cuda:0 --sam_model_type vit_t  # to use MobileSAM
 ```
 
 

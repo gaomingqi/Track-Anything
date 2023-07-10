@@ -12,3 +12,4 @@ test_sample/
 result/
 vots/
 vots.py
+iris_conf.yaml

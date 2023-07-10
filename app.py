@@ -28,6 +28,9 @@ def download_checkpoint(url, folder, filename):
 
     if not os.path.exists(filepath):
         print("download checkpoints ......")
+
+        if url is None:
+            raise FileNotFoundError(f"Model checkpoint {folder}/{filename} does not exist and it cannot be downloaded automatically")
         response = requests.get(url, stream=True)
         with open(filepath, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
@@ -358,12 +361,14 @@ args = parse_augment()
 SAM_checkpoint_dict = {
     'vit_h': "sam_vit_h_4b8939.pth",
     'vit_l': "sam_vit_l_0b3195.pth", 
-    "vit_b": "sam_vit_b_01ec64.pth"
+    "vit_b": "sam_vit_b_01ec64.pth",
+    "vit_t": "mobile_sam.pt"
 }
 SAM_checkpoint_url_dict = {
     'vit_h': "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth",
     'vit_l': "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth",
-    'vit_b': "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+    'vit_b': "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth",
+    'vit_t': None
 }
 sam_checkpoint = SAM_checkpoint_dict[args.sam_model_type] 
 sam_checkpoint_url = SAM_checkpoint_url_dict[args.sam_model_type] 
@@ -378,7 +383,7 @@ SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
 args.port = 12212
-args.device = "cuda:3"
+# args.device = "cuda:3"
 # args.mask_save = True
 
 # initialize sam, xmem, e2fgvi models
@@ -598,5 +603,5 @@ with gr.Blocks() as iface:
         # cache_examples=True,
     ) 
 iface.queue(concurrency_count=1)
-iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
+iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name=args.server_name)
 # iface.launch(debug=True, enable_queue=True)
