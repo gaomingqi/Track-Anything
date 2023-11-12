@@ -37,7 +37,7 @@ class XMem(nn.Module):
         if model_weights is not None:
             self.load_weights(model_weights, init_as_zero_if_needed=True)
 
-    def encode_key(self, frame, need_sk=True, need_ek=True): 
+    def encode_key(self, frame, need_sk=True, need_ek=True):
         # Determine input shape
         if len(frame.shape) == 5:
             # shape is b*t*c*h*w
@@ -50,7 +50,7 @@ class XMem(nn.Module):
             need_reshape = False
         else:
             raise NotImplementedError
-    
+
         f16, f8, f4 = self.key_encoder(frame)
         key, shrinkage, selection = self.key_proj(f16, need_sk, need_ek)
 
@@ -69,14 +69,14 @@ class XMem(nn.Module):
 
         return key, shrinkage, selection, f16, f8, f4
 
-    def encode_value(self, frame, image_feat_f16, h16, masks, is_deep_update=True): 
+    def encode_value(self, frame, image_feat_f16, h16, masks, is_deep_update=True):
         num_objects = masks.shape[1]
         if num_objects != 1:
             others = torch.cat([
                 torch.sum(
-                    masks[:, [j for j in range(num_objects) if i!=j]]
-                , dim=1, keepdim=True)
-            for i in range(num_objects)], 1)
+                    masks[:, [j for j in range(num_objects) if i != j]]
+                    , dim=1, keepdim=True)
+                for i in range(num_objects)], 1)
         else:
             others = torch.zeros_like(masks)
 
@@ -86,7 +86,7 @@ class XMem(nn.Module):
 
     # Used in training only. 
     # This step is replaced by MemoryManager in test time
-    def read_memory(self, query_key, query_selection, memory_key, 
+    def read_memory(self, query_key, query_selection, memory_key,
                     memory_shrinkage, memory_value):
         """
         query_key       : B * CK * H * W
@@ -105,13 +105,13 @@ class XMem(nn.Module):
         return memory
 
     def segment(self, multi_scale_features, memory_readout,
-                    hidden_state, selector=None, h_out=True, strip_bg=True): 
+                hidden_state, selector=None, h_out=True, strip_bg=True):
 
         hidden_state, logits = self.decoder(*multi_scale_features, hidden_state, memory_readout, h_out=h_out)
         prob = torch.sigmoid(logits)
         if selector is not None:
             prob = prob * selector
-            
+
         logits, prob = aggregate(prob, dim=1, return_logits=True)
         if strip_bg:
             # Strip away the background
@@ -149,9 +149,9 @@ class XMem(nn.Module):
             if self.disable_hidden:
                 self.hidden_dim = 0
             else:
-                self.hidden_dim = model_weights['decoder.hidden_update.transform.weight'].shape[0]//3
+                self.hidden_dim = model_weights['decoder.hidden_update.transform.weight'].shape[0] // 3
             print(f'Hyperparameters read from the model weights: '
-                    f'C^k={self.key_dim}, C^v={self.value_dim}, C^h={self.hidden_dim}')
+                  f'C^k={self.key_dim}, C^v={self.value_dim}, C^h={self.hidden_dim}')
         else:
             model_weights = None
             # load dimensions from config or default
@@ -187,7 +187,7 @@ class XMem(nn.Module):
             if k == 'value_encoder.conv1.weight':
                 if src_dict[k].shape[1] == 4:
                     print('Converting weights from single object to multiple objects.')
-                    pads = torch.zeros((64,1,7,7), device=src_dict[k].device)
+                    pads = torch.zeros((64, 1, 7, 7), device=src_dict[k].device)
                     if not init_as_zero_if_needed:
                         print('Randomly initialized padding.')
                         nn.init.orthogonal_(pads)

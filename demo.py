@@ -1,5 +1,6 @@
 from metaseg import SegAutoMaskPredictor, SegManualMaskPredictor, SahiAutoSegmentation, sahi_sliced_predict
 
+
 # For image
 
 def automask_image_app(image_path, model_type, points_per_side, points_per_batch, min_area):
@@ -51,16 +52,16 @@ def manual_app(image_path, model_type, input_point, input_label, input_box, mult
 # For sahi sliced prediction
 
 def sahi_autoseg_app(
-    image_path,
-    sam_model_type,
-    detection_model_type,
-    detection_model_path,
-    conf_th,
-    image_size,
-    slice_height,
-    slice_width,
-    overlap_height_ratio,
-    overlap_width_ratio,
+        image_path,
+        sam_model_type,
+        detection_model_type,
+        detection_model_path,
+        conf_th,
+        image_size,
+        slice_height,
+        slice_width,
+        overlap_height_ratio,
+        overlap_width_ratio,
 ):
     boxes = sahi_sliced_predict(
         image_path=image_path,
@@ -83,5 +84,5 @@ def sahi_autoseg_app(
         show=False,
         save=True,
     )
-    
+
     return "output.png"

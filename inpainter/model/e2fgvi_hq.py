@@ -32,6 +32,7 @@ class BaseNetwork(nn.Module):
         init_type: normal | xavier | kaiming | orthogonal
         https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/9451e70673400885567d08a9e97ade2524c700d0/models/networks.py#L39
         '''
+
         def init_func(m):
             classname = m.__class__.__name__
             if classname.find('InstanceNorm2d') != -1:
@@ -212,10 +213,10 @@ class InpaintGenerator(BaseNetwork):
         # compute forward and backward flows of masked frames
         masked_local_frames = F.interpolate(masked_local_frames.view(
             -1, c, h, w),
-                                            scale_factor=1 / 4,
-                                            mode='bilinear',
-                                            align_corners=True,
-                                            recompute_scale_factor=True)
+            scale_factor=1 / 4,
+            mode='bilinear',
+            align_corners=True,
+            recompute_scale_factor=True)
         masked_local_frames = masked_local_frames.view(b, l_t, c, h // 4,
                                                        w // 4)
         mlf_1 = masked_local_frames[:, :-1, :, :, :].reshape(
@@ -340,11 +341,8 @@ class Discriminator(BaseNetwork):
         feat = self.conv(xs_t)
         if self.use_sigmoid:
             feat = torch.sigmoid(feat)
-        out = torch.transpose(feat, 1, 2)  # B, T, C, H, W
-        return out
+        return torch.transpose(feat, 1, 2)
 
 
 def spectral_norm(module, mode=True):
-    if mode:
-        return _spectral_norm(module)
-    return module
+    return _spectral_norm(module) if mode else module

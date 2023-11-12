@@ -24,21 +24,22 @@ def get_similarity(mk, ms, qk, qe):
         a_sq = (mk.pow(2) @ qe)
         two_ab = 2 * (mk @ (qk * qe))
         b_sq = (qe * qk.pow(2)).sum(1, keepdim=True)
-        similarity = (-a_sq+two_ab-b_sq)
+        similarity = (-a_sq + two_ab - b_sq)
     else:
         # similar to STCN if we don't have the selection term
         a_sq = mk.pow(2).sum(1).unsqueeze(2)
         two_ab = 2 * (mk.transpose(1, 2) @ qk)
-        similarity = (-a_sq+two_ab)
+        similarity = (-a_sq + two_ab)
 
     if ms is not None:
-        similarity = similarity * ms / math.sqrt(CK)   # B*N*HW
+        similarity = similarity * ms / math.sqrt(CK)  # B*N*HW
     else:
-        similarity = similarity / math.sqrt(CK)   # B*N*HW
+        similarity = similarity / math.sqrt(CK)  # B*N*HW
 
     return similarity
 
-def do_softmax(similarity, top_k: Optional[int]=None, inplace=False, return_usage=False):
+
+def do_softmax(similarity, top_k: Optional[int] = None, inplace=False, return_usage=False):
     # normalize similarity with top-k softmax
     # similarity: B x N x [HW/P]
     # use inplace with care
@@ -48,15 +49,15 @@ def do_softmax(similarity, top_k: Optional[int]=None, inplace=False, return_usag
         x_exp = values.exp_()
         x_exp /= torch.sum(x_exp, dim=1, keepdim=True)
         if inplace:
-            similarity.zero_().scatter_(1, indices, x_exp) # B*N*HW
+            similarity.zero_().scatter_(1, indices, x_exp)  # B*N*HW
             affinity = similarity
         else:
-            affinity = torch.zeros_like(similarity).scatter_(1, indices, x_exp) # B*N*HW
+            affinity = torch.zeros_like(similarity).scatter_(1, indices, x_exp)  # B*N*HW
     else:
         maxes = torch.max(similarity, dim=1, keepdim=True)[0]
         x_exp = torch.exp(similarity - maxes)
         x_exp_sum = torch.sum(x_exp, dim=1, keepdim=True)
-        affinity = x_exp / x_exp_sum 
+        affinity = x_exp / x_exp_sum
         indices = None
 
     if return_usage:
@@ -64,16 +65,18 @@ def do_softmax(similarity, top_k: Optional[int]=None, inplace=False, return_usag
 
     return affinity
 
+
 def get_affinity(mk, ms, qk, qe):
     # shorthand used in training with no top-k
     similarity = get_similarity(mk, ms, qk, qe)
     affinity = do_softmax(similarity)
     return affinity
 
+
 def readout(affinity, mv):
     B, CV, T, H, W = mv.shape
 
-    mo = mv.view(B, CV, T*H*W) 
+    mo = mv.view(B, CV, T * H * W)
     mem = torch.bmm(mo, affinity)
     mem = mem.view(B, CV, H, W)
 
