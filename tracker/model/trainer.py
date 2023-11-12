@@ -25,7 +25,7 @@ class XMemTrainer:
         self.local_rank = local_rank
 
         self.XMem = nn.parallel.DistributedDataParallel(
-            XMem(config).cuda(), 
+            XMem(config).cuda(),
             device_ids=[local_rank], output_device=local_rank, broadcast_buffers=False)
 
         # Set up logger when local_rank=0
@@ -76,21 +76,21 @@ class XMemTrainer:
 
             filler_one = torch.zeros(1, dtype=torch.int64)
             hidden = torch.zeros((b, num_objects, self.config['hidden_dim'], *key.shape[-2:]))
-            v16, hidden = self.XMem('encode_value', frames[:,0], f16[:,0], hidden, first_frame_gt[:,0])
-            values = v16.unsqueeze(3) # add the time dimension
+            v16, hidden = self.XMem('encode_value', frames[:, 0], f16[:, 0], hidden, first_frame_gt[:, 0])
+            values = v16.unsqueeze(3)  # add the time dimension
 
             for ti in range(1, self.num_frames):
                 if ti <= self.num_ref_frames:
                     ref_values = values
-                    ref_keys = key[:,:,:ti]
-                    ref_shrinkage = shrinkage[:,:,:ti] if shrinkage is not None else None
+                    ref_keys = key[:, :, :ti]
+                    ref_shrinkage = shrinkage[:, :, :ti] if shrinkage is not None else None
                 else:
                     # pick num_ref_frames random frames
                     # this is not very efficient but I think we would 
                     # need broadcasting in gather which we don't have
                     indices = [
-                        torch.cat([filler_one, torch.randperm(ti-1)[:self.num_ref_frames-1]+1])
-                    for _ in range(b)]
+                        torch.cat([filler_one, torch.randperm(ti - 1)[:self.num_ref_frames - 1] + 1])
+                        for _ in range(b)]
                     ref_values = torch.stack([
                         values[bi, :, :, indices[bi]] for bi in range(b)
                     ], 0)
@@ -102,15 +102,17 @@ class XMemTrainer:
                     ], 0) if shrinkage is not None else None
 
                 # Segment frame ti
-                memory_readout = self.XMem('read_memory', key[:,:,ti], selection[:,:,ti] if selection is not None else None, 
-                                        ref_keys, ref_shrinkage, ref_values)
-                hidden, logits, masks = self.XMem('segment', (f16[:,ti], f8[:,ti], f4[:,ti]), memory_readout, 
-                        hidden, selector, h_out=(ti < (self.num_frames-1)))
+                memory_readout = self.XMem('read_memory', key[:, :, ti],
+                                           selection[:, :, ti] if selection is not None else None,
+                                           ref_keys, ref_shrinkage, ref_values)
+                hidden, logits, masks = self.XMem('segment', (f16[:, ti], f8[:, ti], f4[:, ti]), memory_readout,
+                                                  hidden, selector, h_out=(ti < (self.num_frames - 1)))
 
                 # No need to encode the last frame
-                if ti < (self.num_frames-1):
+                if ti < (self.num_frames - 1):
                     is_deep_update = np.random.rand() < self.deep_update_prob
-                    v16, hidden = self.XMem('encode_value', frames[:,ti], f16[:,ti], hidden, masks, is_deep_update=is_deep_update)
+                    v16, hidden = self.XMem('encode_value', frames[:, ti], f16[:, ti], hidden, masks,
+                                            is_deep_update=is_deep_update)
                     values = torch.cat([values, v16.unsqueeze(3)], 3)
 
                 out[f'masks_{ti}'] = masks
@@ -132,17 +134,17 @@ class XMemTrainer:
             if self._is_train:
 
                 if (it) % self.log_text_interval == 0 and it != 0:
-                    time_spent = time.time()-self.last_time
+                    time_spent = time.time() - self.last_time
 
                     if self.logger is not None:
                         self.logger.log_scalar('train/lr', self.scheduler.get_last_lr()[0], it)
-                        self.logger.log_metrics('train', 'time', (time_spent)/self.log_text_interval, it)
-                    
-                    global_avg = 0.5*(global_avg) + 0.5*(time_spent)
+                        self.logger.log_metrics('train', 'time', (time_spent) / self.log_text_interval, it)
+
+                    global_avg = 0.5 * (global_avg) + 0.5 * (time_spent)
                     eta_seconds = global_avg * (max_it - it) / 100
                     eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
                     print(f'ETA: {eta_string}')
-                    
+
                     self.last_time = time.time()
                     self.train_integrator.finalize('train', it)
                     self.train_integrator.reset_except_hooks()
@@ -162,7 +164,7 @@ class XMemTrainer:
             self.scaler.step(self.optimizer)
             self.scaler.update()
         else:
-            losses['total_loss'].backward() 
+            losses['total_loss'].backward()
             self.optimizer.step()
 
         self.scheduler.step()
@@ -171,7 +173,7 @@ class XMemTrainer:
         if self.save_path is None:
             print('Saving has been disabled.')
             return
-        
+
         os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
         model_path = f'{self.save_path}_{it}.pth'
         torch.save(self.XMem.module.state_dict(), model_path)
@@ -184,7 +186,7 @@ class XMemTrainer:
 
         os.makedirs(os.path.dirname(self.save_path), exist_ok=True)
         checkpoint_path = f'{self.save_path}_checkpoint_{it}.pth'
-        checkpoint = { 
+        checkpoint = {
             'it': it,
             'network': self.XMem.module.state_dict(),
             'optimizer': self.optimizer.state_dict(),
@@ -241,4 +243,3 @@ class XMemTrainer:
         self._do_log = False
         self.XMem.eval()
         return self
-

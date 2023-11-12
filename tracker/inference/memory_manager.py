@@ -9,6 +9,7 @@ class MemoryManager:
     """
     Manages all three memory stores and the transition between working/long-term memory
     """
+
     def __init__(self, config):
         self.hidden_dim = config['hidden_dim']
         self.top_k = config['top_k']
@@ -71,7 +72,7 @@ class MemoryManager:
             # Use long-term memory
             long_mem_size = self.long_mem.size
             memory_key = torch.cat([self.long_mem.key, self.work_mem.key], -1)
-            shrinkage = torch.cat([self.long_mem.shrinkage, self.work_mem.shrinkage], -1) 
+            shrinkage = torch.cat([self.long_mem.shrinkage, self.work_mem.shrinkage], -1)
 
             similarity = get_similarity(memory_key, shrinkage, query_key, selection)
             work_mem_similarity = similarity[:, long_mem_size:]
@@ -80,8 +81,8 @@ class MemoryManager:
             # get the usage with the first group
             # the first group always have all the keys valid
             affinity, usage = do_softmax(
-                    torch.cat([long_mem_similarity[:, -self.long_mem.get_v_size(0):], work_mem_similarity], 1), 
-                    top_k=self.top_k, inplace=True, return_usage=True)
+                torch.cat([long_mem_similarity[:, -self.long_mem.get_v_size(0):], work_mem_similarity], 1),
+                top_k=self.top_k, inplace=True, return_usage=True)
             affinity = [affinity]
 
             # compute affinity group by group as later groups only have a subset of keys
@@ -89,13 +90,13 @@ class MemoryManager:
                 if gi < self.long_mem.num_groups:
                     # merge working and lt similarities before softmax
                     affinity_one_group = do_softmax(
-                        torch.cat([long_mem_similarity[:, -self.long_mem.get_v_size(gi):], 
-                                    work_mem_similarity[:, -self.work_mem.get_v_size(gi):]], 1), 
+                        torch.cat([long_mem_similarity[:, -self.long_mem.get_v_size(gi):],
+                                   work_mem_similarity[:, -self.work_mem.get_v_size(gi):]], 1),
                         top_k=self.top_k, inplace=True)
                 else:
                     # no long-term memory for this group
-                    affinity_one_group = do_softmax(work_mem_similarity[:, -self.work_mem.get_v_size(gi):], 
-                        top_k=self.top_k, inplace=(gi==num_groups-1))
+                    affinity_one_group = do_softmax(work_mem_similarity[:, -self.work_mem.get_v_size(gi):],
+                                                    top_k=self.top_k, inplace=(gi == num_groups - 1))
                 affinity.append(affinity_one_group)
 
             all_memory_value = []
@@ -122,23 +123,23 @@ class MemoryManager:
             similarity = get_similarity(self.work_mem.key, self.work_mem.shrinkage, query_key, selection)
 
             if self.enable_long_term:
-                affinity, usage = do_softmax(similarity, inplace=(num_groups==1), 
-                    top_k=self.top_k, return_usage=True)
+                affinity, usage = do_softmax(similarity, inplace=(num_groups == 1),
+                                             top_k=self.top_k, return_usage=True)
 
                 # Record memory usage for working memory
                 self.work_mem.update_usage(usage.flatten())
             else:
-                affinity = do_softmax(similarity, inplace=(num_groups==1), 
-                    top_k=self.top_k, return_usage=False)
+                affinity = do_softmax(similarity, inplace=(num_groups == 1),
+                                      top_k=self.top_k, return_usage=False)
 
             affinity = [affinity]
 
             # compute affinity group by group as later groups only have a subset of keys
             for gi in range(1, num_groups):
-                affinity_one_group = do_softmax(similarity[:, -self.work_mem.get_v_size(gi):], 
-                    top_k=self.top_k, inplace=(gi==num_groups-1))
+                affinity_one_group = do_softmax(similarity[:, -self.work_mem.get_v_size(gi):],
+                                                top_k=self.top_k, inplace=(gi == num_groups - 1))
                 affinity.append(affinity_one_group)
-                
+
             all_memory_value = self.work_mem.value
 
         # Shared affinity within each group
@@ -156,16 +157,16 @@ class MemoryManager:
         if self.H is None or self.reset_config:
             self.reset_config = False
             self.H, self.W = key.shape[-2:]
-            self.HW = self.H*self.W
+            self.HW = self.H * self.W
             if self.enable_long_term:
                 # convert from num. frames to num. nodes
-                self.min_work_elements = self.min_mt_frames*self.HW
-                self.max_work_elements = self.max_mt_frames*self.HW
+                self.min_work_elements = self.min_mt_frames * self.HW
+                self.max_work_elements = self.max_mt_frames * self.HW
 
         # key:   1*C*N
         # value: num_objects*C*N
         key = key.flatten(start_dim=2)
-        shrinkage = shrinkage.flatten(start_dim=2) 
+        shrinkage = shrinkage.flatten(start_dim=2)
         value = value[0].flatten(start_dim=2)
 
         self.CK = key.shape[1]
@@ -184,9 +185,9 @@ class MemoryManager:
             if self.work_mem.size >= self.max_work_elements:
                 # print('remove memory')
                 # Remove obsolete features if needed
-                if self.long_mem.size >= (self.max_long_elements-self.num_prototypes):
-                    self.long_mem.remove_obsolete_features(self.max_long_elements-self.num_prototypes)
-                    
+                if self.long_mem.size >= (self.max_long_elements - self.num_prototypes):
+                    self.long_mem.remove_obsolete_features(self.max_long_elements - self.num_prototypes)
+
                 self.compress_features()
 
     def create_hidden_state(self, n, sample_key):
@@ -196,11 +197,11 @@ class MemoryManager:
             self.hidden = torch.zeros((1, n, self.hidden_dim, h, w), device=sample_key.device)
         elif self.hidden.shape[1] != n:
             self.hidden = torch.cat([
-                self.hidden, 
-                torch.zeros((1, n-self.hidden.shape[1], self.hidden_dim, h, w), device=sample_key.device)
+                self.hidden,
+                torch.zeros((1, n - self.hidden.shape[1], self.hidden_dim, h, w), device=sample_key.device)
             ], 1)
 
-        assert(self.hidden.shape[1] == n)
+        assert (self.hidden.shape[1] == n)
 
     def set_hidden(self, hidden):
         self.hidden = hidden
@@ -219,23 +220,23 @@ class MemoryManager:
             mem_size_in_this_group = gv.shape[-1]
             if mem_size_in_this_group == total_work_mem_size:
                 # full LT
-                candidate_value.append(gv[:,:,HW:-self.min_work_elements+HW])
+                candidate_value.append(gv[:, :, HW:-self.min_work_elements + HW])
             else:
                 # mem_size is smaller than total_work_mem_size, but at least HW
                 assert HW <= mem_size_in_this_group < total_work_mem_size
-                if mem_size_in_this_group > self.min_work_elements+HW:
+                if mem_size_in_this_group > self.min_work_elements + HW:
                     # part of this object group still goes into LT
-                    candidate_value.append(gv[:,:,HW:-self.min_work_elements+HW])
+                    candidate_value.append(gv[:, :, HW:-self.min_work_elements + HW])
                 else:
                     # this object group cannot go to the LT at all
                     candidate_value.append(None)
 
         # perform memory consolidation
         prototype_key, prototype_value, prototype_shrinkage = self.consolidation(
-            *self.work_mem.get_all_sliced(HW, -self.min_work_elements+HW), candidate_value)
+            *self.work_mem.get_all_sliced(HW, -self.min_work_elements + HW), candidate_value)
 
         # remove consolidated working memory
-        self.work_mem.sieve_by_range(HW, -self.min_work_elements+HW, min_size=self.min_work_elements+HW)
+        self.work_mem.sieve_by_range(HW, -self.min_work_elements + HW, min_size=self.min_work_elements + HW)
 
         # add to long-term memory
         self.long_mem.add(prototype_key, prototype_value, prototype_shrinkage, selection=None, objects=None)
@@ -252,7 +253,7 @@ class MemoryManager:
         prototype_indices = max_usage_indices.flatten()
 
         # Prototypes are invalid for out-of-bound groups
-        validity = [prototype_indices >= (N-gv.shape[2]) if gv is not None else None for gv in candidate_value]
+        validity = [prototype_indices >= (N - gv.shape[2]) if gv is not None else None for gv in candidate_value]
 
         prototype_key = candidate_key[:, :, prototype_indices]
         prototype_selection = candidate_selection[:, :, prototype_indices] if candidate_selection is not None else None
@@ -281,6 +282,7 @@ class MemoryManager:
         ]
 
         # readout the shrinkage term
-        prototype_shrinkage = self._readout(affinity[0], candidate_shrinkage) if candidate_shrinkage is not None else None
+        prototype_shrinkage = self._readout(affinity[0],
+                                            candidate_shrinkage) if candidate_shrinkage is not None else None
 
         return prototype_key, prototype_value, prototype_shrinkage

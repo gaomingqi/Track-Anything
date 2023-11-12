@@ -38,7 +38,7 @@ class BaseSegmenter:
         self.predictor.set_image(image)
         self.embedded = True
         return
-    
+
     @torch.no_grad()
     def reset_image(self):
         # reset image embeding
@@ -58,21 +58,21 @@ class BaseSegmenter:
         """
         assert self.embedded, 'prediction is called before set_image (feature embedding).'
         assert mode in ['point', 'mask', 'both'], 'mode must be point, mask, or both'
-        
+
         if mode == 'point':
-            masks, scores, logits = self.predictor.predict(point_coords=prompts['point_coords'], 
-                                point_labels=prompts['point_labels'], 
-                                multimask_output=multimask)
+            masks, scores, logits = self.predictor.predict(point_coords=prompts['point_coords'],
+                                                           point_labels=prompts['point_labels'],
+                                                           multimask_output=multimask)
         elif mode == 'mask':
-            masks, scores, logits = self.predictor.predict(mask_input=prompts['mask_input'], 
-                                multimask_output=multimask)
-        elif mode == 'both':   # both
-            masks, scores, logits = self.predictor.predict(point_coords=prompts['point_coords'], 
-                                point_labels=prompts['point_labels'], 
-                                mask_input=prompts['mask_input'], 
-                                multimask_output=multimask)
+            masks, scores, logits = self.predictor.predict(mask_input=prompts['mask_input'],
+                                                           multimask_output=multimask)
+        elif mode == 'both':  # both
+            masks, scores, logits = self.predictor.predict(point_coords=prompts['point_coords'],
+                                                           point_labels=prompts['point_labels'],
+                                                           mask_input=prompts['mask_input'],
+                                                           multimask_output=multimask)
         else:
-            raise("Not implement now!")
+            raise ("Not implement now!")
         # masks (n, h, w), scores (n,), logits (n, 256, 256)
         return masks, scores, logits
 
@@ -83,47 +83,50 @@ if __name__ == "__main__":
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # numpy array (h, w, 3)
 
     # initialise BaseSegmenter
-    SAM_checkpoint= '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
+    SAM_checkpoint = '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
     model_type = 'vit_h'
     device = "cuda:4"
     base_segmenter = BaseSegmenter(SAM_checkpoint=SAM_checkpoint, model_type=model_type, device=device)
-    
+
     # image embedding (once embedded, multiple prompts can be applied)
     base_segmenter.set_image(image)
-    
+
     # examples
     # point only ------------------------
     mode = 'point'
     prompts = {
         'point_coords': np.array([[500, 375], [1125, 625]]),
-        'point_labels': np.array([1, 1]), 
+        'point_labels': np.array([1, 1]),
     }
-    masks, scores, logits = base_segmenter.predict(prompts, mode, multimask=False)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
+    masks, scores, logits = base_segmenter.predict(prompts, mode,
+                                                   multimask=False)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
     painted_image = mask_painter(image, masks[np.argmax(scores)].astype('uint8'), background_alpha=0.8)
     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
     cv2.imwrite('/hhd3/gaoshang/truck_point.jpg', painted_image)
 
     # both ------------------------
     mode = 'both'
-    mask_input  = logits[np.argmax(scores), :, :]
-    prompts = {'mask_input': mask_input [None, :, :]}
+    mask_input = logits[np.argmax(scores), :, :]
+    prompts = {'mask_input': mask_input[None, :, :]}
     prompts = {
         'point_coords': np.array([[500, 375], [1125, 625]]),
-        'point_labels': np.array([1, 0]), 
+        'point_labels': np.array([1, 0]),
         'mask_input': mask_input[None, :, :]
     }
-    masks, scores, logits = base_segmenter.predict(prompts, mode, multimask=True)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
+    masks, scores, logits = base_segmenter.predict(prompts, mode,
+                                                   multimask=True)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
     painted_image = mask_painter(image, masks[np.argmax(scores)].astype('uint8'), background_alpha=0.8)
     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
     cv2.imwrite('/hhd3/gaoshang/truck_both.jpg', painted_image)
 
     # mask only ------------------------
     mode = 'mask'
-    mask_input  = logits[np.argmax(scores), :, :]
-    
+    mask_input = logits[np.argmax(scores), :, :]
+
     prompts = {'mask_input': mask_input[None, :, :]}
-    
-    masks, scores, logits = base_segmenter.predict(prompts, mode, multimask=True)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
+
+    masks, scores, logits = base_segmenter.predict(prompts, mode,
+                                                   multimask=True)  # masks (n, h, w), scores (n,), logits (n, 256, 256)
     painted_image = mask_painter(image, masks[np.argmax(scores)].astype('uint8'), background_alpha=0.8)
     painted_image = cv2.cvtColor(painted_image, cv2.COLOR_RGB2BGR)  # numpy array (h, w, 3)
     cv2.imwrite('/hhd3/gaoshang/truck_mask.jpg', painted_image)
