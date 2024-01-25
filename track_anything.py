@@ -57,8 +57,8 @@ class TrackingAnything():
                 logits.append(logit)
                 painted_images.append(painted_image)
         return masks, logits, painted_images
-    
-        
+
+
 def parse_augment():
     parser = argparse.ArgumentParser()
     parser.add_argument('--device', type=str, default="cuda:0")
@@ -66,7 +66,7 @@ def parse_augment():
     parser.add_argument('--port', type=int, default=6080, help="only useful when running gradio applications")  
     parser.add_argument('--debug', action="store_true")
     parser.add_argument('--mask_save', default=False)
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     if args.debug:
         print(args)
@@ -89,8 +89,8 @@ if __name__ == "__main__":
     mask[0,0]= 1
     trackany = TrackingAnything('/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth','/ssd1/gaomingqi/checkpoints/XMem-s012.pth', args)
     masks, logits ,painted_images= trackany.generator(images, mask)
+
         
-        
+
     
-    
-    
+
