@@ -11,7 +11,7 @@ from .mask_painter import mask_painter
 
 
 class BaseSegmenter:
-    def __init__(self, SAM_checkpoint, model_type, device='cuda:0'):
+    def __init__(self, SAM_checkpoint, model_type, device='mps'):
         """
         device: model device
         SAM_checkpoint: path of SAM checkpoint
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     # initialise BaseSegmenter
     SAM_checkpoint= '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
     model_type = 'vit_h'
-    device = "cuda:4"
+    device = "mps"
     base_segmenter = BaseSegmenter(SAM_checkpoint=SAM_checkpoint, model_type=model_type, device=device)
     
     # image embedding (once embedded, multiple prompts can be applied)

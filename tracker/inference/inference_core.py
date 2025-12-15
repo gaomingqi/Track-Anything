@@ -1,7 +1,8 @@
-from inference.memory_manager import MemoryManager
-from model.network import XMem
-from model.aggregate import aggregate
 
+from tracker.inference.memory_manager import MemoryManager
+
+from tracker.model.aggregate import aggregate
+from tracker.model.network import XMem
 from tracker.util.tensor_util import pad_divide_by, unpad
 
 

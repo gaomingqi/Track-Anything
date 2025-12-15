@@ -7,8 +7,9 @@ from PIL import Image
 import torch
 import yaml
 import torch.nn.functional as F
+from tracker.inference.inference_core import InferenceCore
 from tracker.model.network import XMem
-from inference.inference_core import InferenceCore
+
 from tracker.util.mask_mapper import MaskMapper
 from torchvision import transforms
 from tracker.util.range_transform import im_normalization
@@ -25,6 +26,11 @@ class BaseTracker:
         device: model device
         xmem_checkpoint: checkpoint of XMem model
         """
+        if device is None:
+            if torch.backends.mps.is_available():
+                device = torch.device("mps")
+            else:
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # load configurations
         with open("tracker/config/config.yaml", 'r') as stream: 
             config = yaml.safe_load(stream) 
@@ -103,7 +109,7 @@ class BaseTracker:
 
         # print(f'max memory allocated: {torch.cuda.max_memory_allocated()/(2**20)} MB')
 
-        return final_mask, final_mask, painted_image
+        return final_mask, probs, painted_image
 
     @torch.no_grad()
     def sam_refinement(self, frame, logits, ti):
@@ -126,8 +132,11 @@ class BaseTracker:
     def clear_memory(self):
         self.tracker.clear_memory()
         self.mapper.clear_labels()
-        torch.cuda.empty_cache()
-
+        if self.device == "cuda":
+            torch.cuda.empty_cache()
+        if self.device == "mps":
+            torch.mps.empty_cache()
+            
 
 ##  how to use:
 ##  1/3) prepare device and xmem_checkpoint
@@ -155,7 +164,7 @@ if __name__ == '__main__':
     # how to use
     # ------------------------------------------------------------------------------------
     # 1/4: set checkpoint and device
-    device = 'cuda:2'
+    device = 'mps'
     XMEM_checkpoint = '/ssd1/gaomingqi/checkpoints/XMem-s012.pth'
     # SAM_checkpoint= '/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth'
     # model_type = 'vit_h'
@@ -179,7 +188,10 @@ if __name__ == '__main__':
     # ----------------------------------------------
     # end
     # ----------------------------------------------
-    print(f'max memory allocated: {torch.cuda.max_memory_allocated()/(2**20)} MB')
+    if device == "cuda":
+        print(f'max memory allocated: {torch.cuda.max_memory_allocated()/(2**20)} MB')
+    if device == "mps":
+        print(f'max memory allocated: {torch.mps.driver_allocated_memory()/(2**20)} MB')
     # set saving path
     save_path = '/ssd1/gaomingqi/results/TAM/blackswan'
     if not os.path.exists(save_path):

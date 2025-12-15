@@ -14,9 +14,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model.group_modules import *
-from model import resnet
-from model.cbam import CBAM
+from tracker.model import resnet
+from tracker.model.cbam import CBAM
+from tracker.model.group_modules import GConv2D, GroupResBlock, MainToGroupDistributor, downsample_groups, upsample_groups
+
+
 
 
 class FeatureFusionBlock(nn.Module):

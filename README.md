@@ -81,6 +81,9 @@ pip install -r requirements.txt
 
 # Run the Track-Anything gradio demo.
 python app.py --device cuda:0
+
+# If your platform AppleM2 use 
+python app.py --device mps
 # python app.py --device cuda:0 --sam_model_type vit_b # for lower memory usage
 ```
 
