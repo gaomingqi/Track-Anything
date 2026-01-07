@@ -1,3 +1,8 @@
+# Major Changes
+
+## This branch adds a button to app.py for one-click export and saving of all items segmented by Track Anything.
+## Additionally, several auxiliary scripts have been added.
+
 <!-- ![](./assets/track-anything-logo.jpg) -->
 
 <div align=center>

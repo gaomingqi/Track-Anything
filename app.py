@@ -120,7 +120,7 @@ def get_frames_from_video(video_input, video_state):
                         gr.update(visible=True), gr.update(visible=True), \
                         gr.update(visible=True), gr.update(visible=True), \
                         gr.update(visible=True), gr.update(visible=True), \
-                        gr.update(visible=True, value=operation_log)
+                        gr.update(visible=True), gr.update(visible=True, value=operation_log)
 
 def run_example(example):
     return video_input
@@ -326,6 +326,56 @@ def inpaint_video(video_state, interactive_state, mask_dropdown):
     return video_output, operation_log
 
 
+def export_cutouts(video_state, mask_dropdown):
+    if video_state["origin_images"] is None or video_state["masks"] is None:
+        return [("Please upload a video and run tracking before exporting cutouts.", "Error"), ("","")]
+    if len(mask_dropdown) == 0:
+        mask_dropdown = ["mask_001"]
+    mask_ids = []
+    for mask_name in mask_dropdown:
+        try:
+            mask_ids.append(int(mask_name.split("_")[1]))
+        except (IndexError, ValueError):
+            continue
+    if not mask_ids:
+        return [("Invalid mask selection.", "Error"), ("","")]
+
+    has_any = False
+    for mask in video_state["masks"]:
+        if mask is None:
+            continue
+        mask_arr = np.asarray(mask)
+        for mask_id in mask_ids:
+            if np.any(mask_arr == mask_id):
+                has_any = True
+                break
+        if has_any:
+            break
+    if not has_any:
+        return [("No pixels found for the selected masks. Run tracking first.", "Error"), ("","")]
+
+    video_stem = os.path.splitext(video_state["video_name"])[0]
+    base_dir = os.path.join("./result/cutout", video_stem)
+    for mask_id in mask_ids:
+        os.makedirs(os.path.join(base_dir, "mask_{:03d}".format(mask_id)), exist_ok=True)
+
+    saved = 0
+    for frame_idx, (frame, mask) in enumerate(zip(video_state["origin_images"], video_state["masks"])):
+        if mask is None:
+            continue
+        mask_arr = np.asarray(mask)
+        for mask_id in mask_ids:
+            alpha = (mask_arr == mask_id).astype(np.uint8) * 255
+            rgba = np.dstack([frame, alpha])
+            bgra = cv2.cvtColor(rgba, cv2.COLOR_RGBA2BGRA)
+            out_path = os.path.join(base_dir, "mask_{:03d}".format(mask_id), "{:05d}.png".format(frame_idx))
+            cv2.imwrite(out_path, bgra)
+            saved += 1
+
+    operation_log = [("",""), ("Saved {} cutouts to {}".format(saved, base_dir), "Normal")]
+    return operation_log
+
+
 # generate video after vos inference
 def generate_video_from_frames(frames, output_path, fps=30):
     """
@@ -378,8 +428,9 @@ SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
 e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
 args.port = 12212
-args.device = "cuda:3"
+# args.device = "cuda:3"
 # args.mask_save = True
+print("Using device:", args.device)
 
 # initialize sam, xmem, e2fgvi models
 model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, e2fgvi_checkpoint,args)
@@ -467,6 +518,7 @@ with gr.Blocks() as iface:
                     with gr.Row():
                         tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
                         inpaint_video_predict_button = gr.Button(value="Inpainting", visible=False)
+                        export_cutouts_button = gr.Button(value="Save Cutouts", visible=False)
 
     # first step: get the video information 
     extract_frames_button.click(
@@ -476,7 +528,7 @@ with gr.Blocks() as iface:
         ],
         outputs=[video_state, video_info, template_frame,
                  image_selection_slider, track_pause_number_slider,point_prompt, clear_button_click, Add_mask_button, template_frame,
-                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, inpaint_video_predict_button, run_status]
+                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, inpaint_video_predict_button, export_cutouts_button, run_status]
     )   
 
     # second step: select images from slider
@@ -524,6 +576,12 @@ with gr.Blocks() as iface:
         outputs=[video_output, run_status]
     )
 
+    export_cutouts_button.click(
+        fn=export_cutouts,
+        inputs=[video_state, mask_dropdown],
+        outputs=[run_status]
+    )
+
     # click to get mask
     mask_dropdown.change(
         fn=show_mask,
@@ -563,7 +621,7 @@ with gr.Blocks() as iface:
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), \
         gr.update(visible=False), gr.update(visible=False), gr.update(visible=False, value=[]), gr.update(visible=False), \
-        gr.update(visible=False), gr.update(visible=False)
+        gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
                         
         ),
         [],
@@ -574,7 +632,7 @@ with gr.Blocks() as iface:
             video_output,
             template_frame,
             tracking_video_predict_button, image_selection_slider , track_pause_number_slider,point_prompt, clear_button_click, 
-            Add_mask_button, template_frame, tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button,inpaint_video_predict_button, run_status
+            Add_mask_button, template_frame, tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button,inpaint_video_predict_button, export_cutouts_button, run_status
         ],
         queue=False,
         show_progress=False)
