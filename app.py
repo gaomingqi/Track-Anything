@@ -598,5 +598,5 @@ with gr.Blocks() as iface:
         # cache_examples=True,
     ) 
 iface.queue(concurrency_count=1)
-iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0")
+iface.launch(debug=True, enable_queue=True, server_port=args.port, server_name="0.0.0.0", share=True)
 # iface.launch(debug=True, enable_queue=True)
